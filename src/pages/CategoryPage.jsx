@@ -11,7 +11,7 @@ function CategoryGrid({ onSelect }) {
           Vocabulaire
         </p>
         <h1 className="text-2xl font-bold text-foreground font-heading">
-          Catégories
+          Library
         </h1>
       </div>
 

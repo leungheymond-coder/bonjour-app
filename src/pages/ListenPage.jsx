@@ -129,7 +129,7 @@ function EmptyState({ category }) {
       </p>
       <p className="text-sm text-muted-foreground leading-relaxed max-w-[220px]">
         {category === 'favourites'
-          ? 'Star at least 1 word in Categories to practice your favourites!'
+          ? 'Star at least 1 word in Library to practice your favourites!'
           : 'Try selecting a different category.'}
       </p>
     </div>

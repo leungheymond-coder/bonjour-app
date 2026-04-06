@@ -30,7 +30,7 @@ export default function FavouritesPage() {
             Rien pour l'instant
           </p>
           <p className="text-sm text-muted-foreground max-w-[220px] leading-relaxed">
-            Star a word in Categories to save it here.
+            Star a word in Library to save it here.
           </p>
         </div>
       ) : (
