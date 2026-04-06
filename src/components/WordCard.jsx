@@ -1,9 +1,7 @@
 import { useState, useRef, useCallback } from 'react'
-import { Volume2, Pause, Star, Loader2, AlertCircle } from 'lucide-react'
+import { Volume2, Pause, Star, AlertCircle } from 'lucide-react'
 import { useFavourites } from '@/hooks/useFavourites'
 import { cn } from '@/lib/utils'
-
-const API_URL = import.meta.env.VITE_API_URL ?? ''
 
 // Global: only one WordCard plays at a time
 let globalStop = null
@@ -11,26 +9,23 @@ let globalStop = null
 export default function WordCard({ word }) {
   const { isFavourite, toggleFavourite } = useFavourites()
   const [speaking, setSpeaking] = useState(false)
-  const [ttsLoading, setTtsLoading] = useState(false)
-  const [ttsError, setTtsError] = useState(false)
+  const [audioError, setAudioError] = useState(false)
   const [starAnimating, setStarAnimating] = useState(false)
   const starred = isFavourite(word.id)
-
   const audioRef = useRef(null)
-  const abortRef = useRef(null)
 
   const cancelSpeak = useCallback(() => {
-    if (abortRef.current) { abortRef.current.abort(); abortRef.current = null }
-    if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; audioRef.current = null }
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+      audioRef.current = null
+    }
     setSpeaking(false)
-    setTtsLoading(false)
-    setTtsError(false)
     if (globalStop === cancelSpeak) globalStop = null
   }, [])
 
-  const handleSpeak = useCallback(async () => {
-    // If loading or playing, cancel
-    if (ttsLoading || speaking) {
+  const handleSpeak = useCallback(() => {
+    if (speaking) {
       cancelSpeak()
       return
     }
@@ -39,50 +34,31 @@ export default function WordCard({ word }) {
     if (globalStop && globalStop !== cancelSpeak) globalStop()
     globalStop = cancelSpeak
 
-    const controller = new AbortController()
-    abortRef.current = controller
-    setTtsLoading(true)
-    setTtsError(false)
+    setAudioError(false)
+    const audio = new Audio(`/audio/${word.id}.mp3`)
+    audioRef.current = audio
 
-    try {
-      const response = await fetch(`${API_URL}/api/tts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: word.french, speed: 1, voice: 'alloy' }),
-        signal: controller.signal,
-      })
-
-      if (controller.signal.aborted) { setTtsLoading(false); return }
-      if (!response.ok) throw new Error(`TTS ${response.status}`)
-
-      const blob = await response.blob()
-      if (controller.signal.aborted) { setTtsLoading(false); return }
-
-      setTtsLoading(false)
-
-      const url = URL.createObjectURL(blob)
-      const audio = new Audio(url)
-      audioRef.current = audio
-
-      audio.onended = () => { URL.revokeObjectURL(url); audioRef.current = null; setSpeaking(false); if (globalStop === cancelSpeak) globalStop = null }
-      audio.onerror = () => { URL.revokeObjectURL(url); audioRef.current = null; setSpeaking(false); if (globalStop === cancelSpeak) globalStop = null }
-
-      setSpeaking(true)
-      audio.play().catch(() => {
-        URL.revokeObjectURL(url)
-        audioRef.current = null
-        setSpeaking(false)
-        if (globalStop === cancelSpeak) globalStop = null
-      })
-    } catch (err) {
-      setTtsLoading(false)
-      if (err.name === 'AbortError') return
+    audio.onended = () => {
+      audioRef.current = null
       setSpeaking(false)
-      setTtsError(true)
       if (globalStop === cancelSpeak) globalStop = null
-      setTimeout(() => setTtsError(false), 3000)
     }
-  }, [word.french, speaking, ttsLoading, cancelSpeak])
+    audio.onerror = () => {
+      audioRef.current = null
+      setSpeaking(false)
+      setAudioError(true)
+      if (globalStop === cancelSpeak) globalStop = null
+      setTimeout(() => setAudioError(false), 3000)
+    }
+
+    audio.play().then(() => setSpeaking(true)).catch(() => {
+      audioRef.current = null
+      setSpeaking(false)
+      setAudioError(true)
+      if (globalStop === cancelSpeak) globalStop = null
+      setTimeout(() => setAudioError(false), 3000)
+    })
+  }, [word.id, speaking, cancelSpeak])
 
   const handleStar = useCallback(() => {
     toggleFavourite(word.id)
@@ -104,24 +80,22 @@ export default function WordCard({ word }) {
         </div>
         <div className="flex items-center gap-1 shrink-0 mt-0.5">
           <button
-            onClick={ttsError ? undefined : handleSpeak}
-            aria-label={ttsLoading ? 'Loading…' : ttsError ? 'Error' : speaking ? `Stop ${word.french}` : `Speak ${word.french}`}
+            onClick={audioError ? undefined : handleSpeak}
+            aria-label={audioError ? 'Error' : speaking ? `Stop ${word.french}` : `Speak ${word.french}`}
             className={cn(
               'w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90',
-              ttsError
+              audioError
                 ? 'bg-destructive/10 text-destructive'
                 : speaking
                   ? 'bg-primary text-primary-foreground animate-pulse-ring'
                   : 'bg-primary/10 text-primary hover:bg-primary/20'
             )}
           >
-            {ttsError
+            {audioError
               ? <AlertCircle className="h-4 w-4" />
-              : ttsLoading
-                ? <Loader2 className="h-4 w-4 animate-spin" />
-                : speaking
-                  ? <Pause className="h-4 w-4" />
-                  : <Volume2 className="h-4 w-4" />
+              : speaking
+                ? <Pause className="h-4 w-4" />
+                : <Volume2 className="h-4 w-4" />
             }
           </button>
           <button
