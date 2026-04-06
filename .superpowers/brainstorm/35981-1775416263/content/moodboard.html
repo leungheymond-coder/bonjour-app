@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bonjour! — Design Moodboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0E0C0A;
+    color: #F0EAD8;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 48px 32px;
+  }
+
+  .page-title {
+    text-align: center;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #8B7B62;
+    margin-bottom: 12px;
+  }
+
+  .page-headline {
+    text-align: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: #F0EAD8;
+    margin-bottom: 8px;
+  }
+
+  .page-sub {
+    text-align: center;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: #8B7B62;
+    margin-bottom: 56px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ── OPTION CARD SHELL ── */
+  .opt-card {
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    position: relative;
+    border: 2px solid transparent;
+  }
+  .opt-card:hover { transform: translateY(-4px); }
+  .opt-card.selected { border-color: #D4A030; }
+  .opt-card.selected .select-badge { opacity: 1; }
+
+  .select-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #D4A030;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    font-size: 14px;
+    z-index: 10;
+  }
+
+  .opt-label {
+    padding: 20px 20px 0;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .opt-name {
+    padding: 4px 20px 16px;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  /* ── MOCK PHONE ── */
+  .phone-wrap {
+    padding: 0 20px 20px;
+    display: flex;
+    gap: 10px;
+  }
+  .phone {
+    flex: 1;
+    border-radius: 20px;
+    overflow: hidden;
+    aspect-ratio: 9/16;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .phone-screen {
+    flex: 1;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+  }
+  .phone-nav {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-shrink: 0;
+    border-top-width: 1px;
+    border-top-style: solid;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-size: 8px;
+    font-weight: 500;
+  }
+  .nav-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+  }
+
+  /* ── PALETTE STRIP ── */
+  .palette {
+    display: flex;
+    gap: 6px;
+    padding: 0 20px 16px;
+  }
+  .swatch {
+    flex: 1;
+    height: 32px;
+    border-radius: 8px;
+    position: relative;
+  }
+  .swatch-label {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 8px;
+    white-space: nowrap;
+    color: #8B7B62;
+  }
+
+  /* ── TYPE SPECIMEN ── */
+  .type-row {
+    padding: 0 20px 24px;
+  }
+  .type-sample {
+    font-size: 13px;
+    opacity: 0.5;
+    margin-bottom: 4px;
+  }
+  .type-french {
+    font-size: 26px;
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+  .type-body {
+    font-size: 11px;
+    line-height: 1.5;
+    opacity: 0.7;
+  }
+
+  /* ═══════════════════════════
+     OPTION A — Framer Faithful
+  ═══════════════════════════ */
+  .opt-a {
+    background: #0A0A0A;
+    box-shadow: 0 0 60px rgba(139, 92, 246, 0.15);
+  }
+  .opt-a .opt-label { color: #8B5CF6; }
+  .opt-a .opt-name { color: #FFFFFF; font-family: 'Inter', sans-serif; }
+  .opt-a .phone { background: #111111; border: 1px solid rgba(255,255,255,0.08); }
+  .opt-a .phone-screen { background: #0F0F0F; }
+  .opt-a .phone-nav {
+    background: rgba(20,20,20,0.9);
+    border-top-color: rgba(255,255,255,0.06);
+    backdrop-filter: blur(12px);
+  }
+  .opt-a .nav-item { color: #888; }
+  .opt-a .nav-item.active { color: #A78BFA; }
+  .opt-a .nav-dot { background: rgba(167,139,250,0.2); }
+  .opt-a .nav-dot.active { background: #8B5CF6; }
+  .opt-a .type-sample { color: #888; font-family: 'Inter', sans-serif; }
+  .opt-a .type-french { color: #FFFFFF; font-family: 'Inter', sans-serif; font-weight: 700; }
+  .opt-a .type-body { color: #aaa; font-family: 'Inter', sans-serif; }
+
+  /* card in screen */
+  .card-a {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 12px;
+    backdrop-filter: blur(8px);
+  }
+  .card-a-word { font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 700; color: #fff; }
+  .card-a-phon { font-size: 9px; color: #888; margin-top: 1px; }
+  .card-a-trans { font-size: 10px; color: #aaa; margin-top: 6px; }
+  .btn-a {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #7C3AED;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+    border: none;
+    cursor: pointer;
+  }
+  .tag-a {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(139,92,246,0.15);
+    color: #A78BFA;
+    font-size: 8px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+  .glow-a {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(139,92,246,0.3), transparent 70%);
+    top: -20px;
+    right: -10px;
+    pointer-events: none;
+  }
+  /* light phone A */
+  .phone-a-light { background: #F5F5F5; border: 1px solid #E0E0E0; }
+  .phone-a-light .phone-screen { background: #FFFFFF; }
+  .phone-a-light .card-a {
+    background: rgba(139,92,246,0.04);
+    border-color: rgba(139,92,246,0.15);
+  }
+  .phone-a-light .card-a-word { color: #1a1a1a; }
+  .phone-a-light .card-a-phon { color: #777; }
+  .phone-a-light .card-a-trans { color: #555; }
+  .phone-a-light .phone-nav {
+    background: rgba(255,255,255,0.95);
+    border-top-color: #E8E8E8;
+  }
+  .phone-a-light .nav-item { color: #999; }
+  .phone-a-light .nav-item.active { color: #7C3AED; }
+  .phone-a-light .nav-dot { background: #EDE9FE; }
+  .phone-a-light .nav-dot.active { background: #7C3AED; }
+
+  /* ═══════════════════════════
+     OPTION B — Parisian Moderne
+  ═══════════════════════════ */
+  .opt-b {
+    background: #0C0A08;
+    box-shadow: 0 0 60px rgba(212, 160, 48, 0.12);
+  }
+  .opt-b .opt-label { color: #D4A030; font-family: 'DM Sans', sans-serif; }
+  .opt-b .opt-name { color: #F2EAD8; font-family: 'Playfair Display', serif; }
+  .opt-b .phone { background: #181410; border: 1px solid rgba(212,160,48,0.15); }
+  .opt-b .phone-screen { background: #0F0D0B; }
+  .opt-b .phone-nav {
+    background: rgba(15,13,11,0.92);
+    border-top-color: rgba(212,160,48,0.1);
+    backdrop-filter: blur(12px);
+  }
+  .opt-b .nav-item { color: #6B5C47; font-family: 'DM Sans', sans-serif; }
+  .opt-b .nav-item.active { color: #D4A030; }
+  .opt-b .nav-dot { background: rgba(212,160,48,0.15); }
+  .opt-b .nav-dot.active { background: #D4A030; }
+  .opt-b .type-sample { color: #6B5C47; font-family: 'DM Sans', sans-serif; }
+  .opt-b .type-french { color: #F2EAD8; font-family: 'Playfair Display', serif; font-weight: 700; }
+  .opt-b .type-body { color: #9A8B76; font-family: 'DM Sans', sans-serif; }
+
+  .card-b {
+    background: rgba(212,160,48,0.05);
+    border: 1px solid rgba(212,160,48,0.12);
+    border-radius: 14px;
+    padding: 12px;
+  }
+  .card-b-word { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; color: #F2EAD8; }
+  .card-b-phon { font-size: 9px; color: #6B5C47; margin-top: 1px; font-family: 'DM Sans', sans-serif; }
+  .card-b-trans { font-size: 10px; color: #9A8B76; margin-top: 6px; font-family: 'DM Sans', sans-serif; }
+  .btn-b {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #D4A030;
+    color: #0C0A08;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+  }
+  .tag-b {
+    display: inline-flex;
+    background: rgba(212,160,48,0.12);
+    color: #D4A030;
+    font-size: 8px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .glow-b {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,160,48,0.25), transparent 70%);
+    top: -20px;
+    right: -10px;
+    pointer-events: none;
+  }
+  /* light phone B */
+  .phone-b-light { background: #F8F3EA; border: 1px solid #E8DEC8; }
+  .phone-b-light .phone-screen { background: #FFFBF4; }
+  .phone-b-light .card-b {
+    background: rgba(212,160,48,0.06);
+    border-color: rgba(212,160,48,0.2);
+  }
+  .phone-b-light .card-b-word { color: #1A1208; }
+  .phone-b-light .card-b-phon { color: #7A6E5F; }
+  .phone-b-light .card-b-trans { color: #5C5040; }
+  .phone-b-light .phone-nav {
+    background: rgba(255,251,244,0.95);
+    border-top-color: #E8DEC8;
+  }
+  .phone-b-light .nav-item { color: #B0A090; }
+  .phone-b-light .nav-item.active { color: #C8952E; }
+  .phone-b-light .nav-dot { background: #F0E4C8; }
+  .phone-b-light .nav-dot.active { background: #C8952E; }
+
+  /* ═══════════════════════════
+     OPTION C — Minuit Graphique
+  ═══════════════════════════ */
+  .opt-c {
+    background: #07080F;
+    box-shadow: 0 0 60px rgba(99, 102, 241, 0.12);
+  }
+  .opt-c .opt-label { color: #818CF8; font-family: 'Outfit', sans-serif; }
+  .opt-c .opt-name { color: #FFFFFF; font-family: 'Outfit', sans-serif; font-weight: 700; }
+  .opt-c .phone { background: #0D0E18; border: 1px solid rgba(99,102,241,0.15); }
+  .opt-c .phone-screen { background: #090A14; }
+  .opt-c .phone-nav {
+    background: rgba(10,10,22,0.92);
+    border-top-color: rgba(99,102,241,0.1);
+    backdrop-filter: blur(12px);
+  }
+  .opt-c .nav-item { color: #4B4E6E; font-family: 'Outfit', sans-serif; }
+  .opt-c .nav-item.active { color: #818CF8; }
+  .opt-c .nav-dot { background: rgba(99,102,241,0.2); }
+  .opt-c .nav-dot.active { background: #6366F1; }
+  .opt-c .type-sample { color: #4B4E6E; font-family: 'Outfit', sans-serif; }
+  .opt-c .type-french { color: #FFFFFF; font-family: 'Outfit', sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+  .opt-c .type-body { color: #8B8FAA; font-family: 'Outfit', sans-serif; }
+
+  .card-c {
+    background: rgba(99,102,241,0.06);
+    border: 1px solid rgba(99,102,241,0.15);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .card-c-word { font-family: 'Outfit', sans-serif; font-size: 19px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
+  .card-c-phon { font-size: 9px; color: #4B4E6E; margin-top: 1px; font-family: 'Outfit', sans-serif; }
+  .card-c-trans { font-size: 10px; color: #8B8FAA; margin-top: 6px; font-family: 'Outfit', sans-serif; }
+  .btn-c {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, #6366F1, #8B5CF6);
+    color: white;
+    font-family: 'Outfit', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+    border: none;
+    cursor: pointer;
+  }
+  .tag-c {
+    display: inline-flex;
+    background: rgba(99,102,241,0.15);
+    color: #818CF8;
+    font-size: 8px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+    font-family: 'Outfit', sans-serif;
+  }
+  .glow-c {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(99,102,241,0.3), transparent 70%);
+    top: -20px;
+    right: -10px;
+    pointer-events: none;
+  }
+  /* light phone C */
+  .phone-c-light { background: #F5F6FF; border: 1px solid #DDE0FF; }
+  .phone-c-light .phone-screen { background: #FAFAFE; }
+  .phone-c-light .card-c {
+    background: rgba(99,102,241,0.05);
+    border-color: rgba(99,102,241,0.2);
+  }
+  .phone-c-light .card-c-word { color: #1a1b2e; }
+  .phone-c-light .card-c-phon { color: #6B6E8E; }
+  .phone-c-light .card-c-trans { color: #4E5270; }
+  .phone-c-light .phone-nav {
+    background: rgba(255,255,255,0.95);
+    border-top-color: #DDE0FF;
+  }
+  .phone-c-light .nav-item { color: #A0A4C0; }
+  .phone-c-light .nav-item.active { color: #6366F1; }
+  .phone-c-light .nav-dot { background: #EEF0FF; }
+  .phone-c-light .nav-dot.active { background: #6366F1; }
+
+  /* ── BADGE ── */
+  .rec-badge {
+    display: inline-block;
+    background: #D4A030;
+    color: #0C0A08;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  .divider { height: 1px; background: rgba(255,255,255,0.06); margin: 0 20px 16px; }
+
+  /* selection ring on click */
+  .opt-card:active { transform: scale(0.99); }
+</style>
+<script>
+  function selectOption(el, choice) {
+    document.querySelectorAll('.opt-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    if (window.__superpowers_select) window.__superpowers_select(choice, el.querySelector('.opt-name').innerText);
+  }
+</script>
+</head>
+<body>
+
+<p class="page-title">Bonjour! App Redesign</p>
+<h1 class="page-headline">Choose a Visual Direction</h1>
+<p class="page-sub">Click a design to select it — each shows dark + light mode mockups</p>
+
+<div class="grid">
+
+  <!-- ═══ OPTION A ═══ -->
+  <div class="opt-card opt-a" onclick="selectOption(this, 'a')">
+    <div class="select-badge">✓</div>
+    <div class="opt-label">Option A</div>
+    <div class="opt-name">Framer Faithful</div>
+
+    <div class="phone-wrap">
+      <!-- Dark -->
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="glow-a"></div>
+          <div class="tag-a">VERBS</div>
+          <div class="card-a">
+            <div class="card-a-word">manger</div>
+            <div class="card-a-phon">mon-ZHAY</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+              <div>
+                <div class="card-a-trans">to eat</div>
+                <div class="card-a-trans">吃</div>
+              </div>
+              <div style="width:24px;height:24px;background:#7C3AED;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;">🔊</div>
+            </div>
+          </div>
+          <div class="card-a" style="background:rgba(139,92,246,0.08);border-color:rgba(139,92,246,0.2);">
+            <div class="card-a-word" style="font-size:14px;color:#A78BFA;">faire</div>
+            <div class="card-a-phon">FAIR</div>
+          </div>
+          <button class="btn-a">▶ Play</button>
+        </div>
+        <div class="phone-nav">
+          <div class="nav-item">
+            <div class="nav-dot"></div>
+            <span>Words</span>
+          </div>
+          <div class="nav-item active">
+            <div class="nav-dot active"></div>
+            <span>Practice</span>
+          </div>
+          <div class="nav-item">
+            <div class="nav-dot"></div>
+            <span>Saved</span>
+          </div>
+        </div>
+      </div>
+      <!-- Light -->
+      <div class="phone phone-a-light">
+        <div class="phone-screen">
+          <div class="tag-a" style="background:rgba(124,58,237,0.1);color:#7C3AED;">VERBS</div>
+          <div class="card-a">
+            <div class="card-a-word">manger</div>
+            <div class="card-a-phon">mon-ZHAY</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+              <div>
+                <div class="card-a-trans">to eat</div>
+                <div class="card-a-trans">吃</div>
+              </div>
+              <div style="width:24px;height:24px;background:#7C3AED;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;">🔊</div>
+            </div>
+          </div>
+          <button class="btn-a" style="background:#7C3AED;">▶ Play</button>
+        </div>
+        <div class="phone-nav">
+          <div class="nav-item">
+            <div class="nav-dot"></div>
+            <span>Words</span>
+          </div>
+          <div class="nav-item active">
+            <div class="nav-dot active"></div>
+            <span>Practice</span>
+          </div>
+          <div class="nav-item">
+            <div class="nav-dot"></div>
+            <span>Saved</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="type-row">
+      <div class="type-sample">French word display</div>
+      <div class="type-french" style="font-family:'Inter',sans-serif;font-weight:700;">Bonjour</div>
+      <div class="type-body" style="font-family:'Inter',sans-serif;">bon-ZHOOR · Hello / 你好</div>
+    </div>
+    <div class="palette">
+      <div class="swatch" style="background:#0A0A0A;border:1px solid rgba(255,255,255,0.1)"><div class="swatch-label" style="color:#888">Background</div></div>
+      <div class="swatch" style="background:#7C3AED"><div class="swatch-label" style="color:#888">Accent</div></div>
+      <div class="swatch" style="background:#A78BFA"><div class="swatch-label" style="color:#888">Soft</div></div>
+      <div class="swatch" style="background:#F5F5F5;border:1px solid #ddd"><div class="swatch-label" style="color:#888">Light BG</div></div>
+    </div>
+    <div style="height:32px"></div>
+  </div>
+
+  <!-- ═══ OPTION B ═══ -->
+  <div class="opt-card opt-b" onclick="selectOption(this, 'b')">
+    <div class="select-badge">✓</div>
+    <div class="opt-label">Option B <span class="rec-badge">Recommended</span></div>
+    <div class="opt-name">Parisian Moderne</div>
+
+    <div class="phone-wrap">
+      <!-- Dark -->
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="glow-b"></div>
+          <div class="tag-b">VERBES</div>
+          <div class="card-b">
+            <div class="card-b-word">manger</div>
+            <div class="card-b-phon">mon-ZHAY</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+              <div>
+                <div class="card-b-trans">to eat</div>
+                <div class="card-b-trans">吃</div>
+              </div>
+              <div style="width:24px;height:24px;background:#D4A030;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;">🔊</div>
+            </div>
+          </div>
+          <div class="card-b" style="background:rgba(212,160,48,0.03)">
+            <div class="card-b-word" style="font-size:14px;color:#D4A030;">faire</div>
+            <div class="card-b-phon">FAIR</div>
+          </div>
+          <button class="btn-b">▶ Play</button>
+        </div>
+        <div class="phone-nav">
+          <div class="nav-item">
+            <div class="nav-dot"></div>
+            <span>Words</span>
+          </div>
+          <div class="nav-item active">
+            <div class="nav-dot active"></div>
+            <span>Practice</span>
+          </div>
+          <div class="nav-item">
+            <div class="nav-dot"></div>
+            <span>Saved</span>
+          </div>
+        </div>
+      </div>
+      <!-- Light -->
+      <div class="phone phone-b-light">
+        <div class="phone-screen">
+          <div class="tag-b" style="background:rgba(200,149,46,0.12);color:#C8952E;">VERBES</div>
+          <div class="card-b">
+            <div class="card-b-word">manger</div>
+            <div class="card-b-phon">mon-ZHAY</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+              <div>
+                <div class="card-b-trans">to eat</div>
+                <div class="card-b-trans">吃</div>
+              </div>
+              <div style="width:24px;height:24px;background:#C8952E;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;">🔊</div>
+            </div>
+          </div>
+          <button class="btn-b" style="background:#C8952E;">▶ Play</button>
+        </div>
+        <div class="phone-nav">
+          <div class="nav-item">
+            <div class="nav-dot"></div>
+            <span>Words</span>
+          </div>
+          <div class="nav-item active">
+            <div class="nav-dot active"></div>
+            <span>Practice</span>
+          </div>
+          <div class="nav-item">
+            <div class="nav-dot"></div>
+            <span>Saved</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="type-row">
+      <div class="type-sample">French word display</div>
+      <div class="type-french">Bonjour</div>
+      <div class="type-body">bon-ZHOOR · Hello / 你好</div>
+    </div>
+    <div class="palette">
+      <div class="swatch" style="background:#0C0A08;border:1px solid rgba(212,160,48,0.2)"><div class="swatch-label" style="color:#6B5C47">Dark BG</div></div>
+      <div class="swatch" style="background:#D4A030"><div class="swatch-label" style="color:#6B5C47">Gold</div></div>
+      <div class="swatch" style="background:#F2EAD8"><div class="swatch-label" style="color:#6B5C47">Cream</div></div>
+      <div class="swatch" style="background:#F8F3EA;border:1px solid #E8DEC8"><div class="swatch-label" style="color:#6B5C47">Light BG</div></div>
+    </div>
+    <div style="height:32px"></div>
+  </div>
+
+  <!-- ═══ OPTION C ═══ -->
+  <div class="opt-card opt-c" onclick="selectOption(this, 'c')">
+    <div class="select-badge">✓</div>
+    <div class="opt-label">Option C</div>
+    <div class="opt-name">Minuit Graphique</div>
+
+    <div class="phone-wrap">
+      <!-- Dark -->
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="glow-c"></div>
+          <div class="tag-c">VERBES</div>
+          <div class="card-c">
+            <div class="card-c-word">manger</div>
+            <div class="card-c-phon">mon-ZHAY</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+              <div>
+                <div class="card-c-trans">to eat</div>
+                <div class="card-c-trans">吃</div>
+              </div>
+              <div style="width:24px;height:24px;background:linear-gradient(135deg,#6366F1,#8B5CF6);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;">🔊</div>
+            </div>
+          </div>
+          <div class="card-c" style="background:rgba(99,102,241,0.04)">
+            <div class="card-c-word" style="font-size:14px;color:#818CF8;">faire</div>
+            <div class="card-c-phon">FAIR</div>
+          </div>
+          <button class="btn-c">▶ Play</button>
+        </div>
+        <div class="phone-nav">
+          <div class="nav-item">
+            <div class="nav-dot"></div>
+            <span>Words</span>
+          </div>
+          <div class="nav-item active">
+            <div class="nav-dot active"></div>
+            <span>Practice</span>
+          </div>
+          <div class="nav-item">
+            <div class="nav-dot"></div>
+            <span>Saved</span>
+          </div>
+        </div>
+      </div>
+      <!-- Light -->
+      <div class="phone phone-c-light">
+        <div class="phone-screen">
+          <div class="tag-c" style="background:rgba(99,102,241,0.1);color:#6366F1;">VERBES</div>
+          <div class="card-c">
+            <div class="card-c-word">manger</div>
+            <div class="card-c-phon">mon-ZHAY</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+              <div>
+                <div class="card-c-trans">to eat</div>
+                <div class="card-c-trans">吃</div>
+              </div>
+              <div style="width:24px;height:24px;background:linear-gradient(135deg,#6366F1,#8B5CF6);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;">🔊</div>
+            </div>
+          </div>
+          <button class="btn-c">▶ Play</button>
+        </div>
+        <div class="phone-nav">
+          <div class="nav-item">
+            <div class="nav-dot"></div>
+            <span>Words</span>
+          </div>
+          <div class="nav-item active">
+            <div class="nav-dot active"></div>
+            <span>Practice</span>
+          </div>
+          <div class="nav-item">
+            <div class="nav-dot"></div>
+            <span>Saved</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="type-row">
+      <div class="type-sample">French word display</div>
+      <div class="type-french">Bonjour</div>
+      <div class="type-body">bon-ZHOOR · Hello / 你好</div>
+    </div>
+    <div class="palette">
+      <div class="swatch" style="background:#07080F;border:1px solid rgba(99,102,241,0.2)"><div class="swatch-label" style="color:#4B4E6E">Dark BG</div></div>
+      <div class="swatch" style="background:#6366F1"><div class="swatch-label" style="color:#4B4E6E">Indigo</div></div>
+      <div class="swatch" style="background:#8B5CF6"><div class="swatch-label" style="color:#4B4E6E">Violet</div></div>
+      <div class="swatch" style="background:#F5F6FF;border:1px solid #DDE0FF"><div class="swatch-label" style="color:#4B4E6E">Light BG</div></div>
+    </div>
+    <div style="height:32px"></div>
+  </div>
+
+</div>
+
+<p style="text-align:center;font-size:13px;color:#6B5C47;margin-top:48px;">Click a card to select, then let me know your choice in the terminal.</p>
+
+<script src="/__superpowers_helper.js" onerror="console.log('helper not available')"></script>
+</body>
+</html>
