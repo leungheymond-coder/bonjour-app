@@ -167,6 +167,25 @@ export default function ListenPage() {
     setTtsLoading(false)
   }
 
+  function speakStatic(wordId, rate, onStart, onEnd) {
+    cancelAudio()
+    setError(null)
+
+    const audio = new Audio(`/audio/${wordId}.mp3`)
+    audio.playbackRate = rate
+    audioRef.current = audio
+
+    audio.onended = () => { audioRef.current = null; if (onEnd) onEnd() }
+    audio.onerror = () => { audioRef.current = null; if (onEnd) onEnd(); setError('Audio failed. Tap play to retry.') }
+
+    if (onStart) onStart()
+    audio.play().catch(() => {
+      audioRef.current = null
+      if (onEnd) onEnd()
+      setError('Audio failed. Tap play to retry.')
+    })
+  }
+
   async function speakFrench(text, onStart, onEnd, rate = 1) {
     cancelAudio()
     setTtsLoading(true)
@@ -268,9 +287,13 @@ export default function ListenPage() {
   async function handlePlay() {
     if (!content || loading) return
     setPaused(false)
-    try {
-      await speakFrench(content.french, () => setPlaying(true), () => { setPlaying(false); setPaused(false) }, speed)
-    } catch { /* non-fatal */ }
+    if (level === 1 && word) {
+      speakStatic(word.id, speed, () => setPlaying(true), () => { setPlaying(false); setPaused(false) })
+    } else {
+      try {
+        await speakFrench(content.french, () => setPlaying(true), () => { setPlaying(false); setPaused(false) }, speed)
+      } catch { /* non-fatal */ }
+    }
   }
 
   function handlePause() {
@@ -282,17 +305,25 @@ export default function ListenPage() {
   async function handleReplay() {
     if (!content) return
     setPaused(false)
-    try {
-      await speakFrench(content.french, () => setPlaying(true), () => { setPlaying(false); setPaused(false) }, speed)
-    } catch { /* non-fatal */ }
+    if (level === 1 && word) {
+      speakStatic(word.id, speed, () => setPlaying(true), () => { setPlaying(false); setPaused(false) })
+    } else {
+      try {
+        await speakFrench(content.french, () => setPlaying(true), () => { setPlaying(false); setPaused(false) }, speed)
+      } catch { /* non-fatal */ }
+    }
   }
 
   function handleSpeedChange(newSpeed) {
     setSpeed(newSpeed)
     // If currently playing, replay at new speed
     if (playing && content) {
-      speakFrench(content.french, () => setPlaying(true), () => { setPlaying(false); setPaused(false) }, newSpeed)
-        .catch(() => {})
+      if (level === 1 && word) {
+        speakStatic(word.id, newSpeed, () => setPlaying(true), () => { setPlaying(false); setPaused(false) })
+      } else {
+        speakFrench(content.french, () => setPlaying(true), () => { setPlaying(false); setPaused(false) }, newSpeed)
+          .catch(() => {})
+      }
     }
   }
 
