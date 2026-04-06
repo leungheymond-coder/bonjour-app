@@ -28,9 +28,10 @@ async function generateAudio(word) {
     return
   }
   const mp3 = await openai.audio.speech.create({
-    model: 'tts-1',
+    model: 'gpt-4o-mini-tts',
     voice: 'alloy',
     input: word.french,
+    instructions: 'You are a native French speaker. Pronounce every word with authentic French pronunciation. Never use English phonetics.',
     speed: 1.0,
   })
   const buffer = Buffer.from(await mp3.arrayBuffer())
