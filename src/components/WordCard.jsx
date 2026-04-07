@@ -67,7 +67,7 @@ export default function WordCard({ word }) {
   }, [word.id, toggleFavourite])
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 flex flex-col gap-3 shadow-[0_2px_16px_oklch(0_0_0/0.06)]">
+    <div className="card-frosted p-4 flex flex-col gap-3">
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
