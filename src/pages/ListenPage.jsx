@@ -414,6 +414,7 @@ export default function ListenPage() {
     setSpeed(newSpeed)
     // If currently playing, replay at new speed
     if (playing && content) {
+      sentenceResetRef.current?.()
       if (level === 1 && word) {
         speakStatic(word.id, newSpeed, () => setPlaying(true), () => { setPlaying(false); setPaused(false) })
       } else {
