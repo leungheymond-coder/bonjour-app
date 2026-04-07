@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Plus } from 'lucide-react'
 import { categories, vocabulary } from '@/data/vocabulary'
 import WordCard from '@/components/WordCard'
+import AddVocabModal from '@/components/AddVocabModal'
+import { useCustomVocab } from '@/hooks/useCustomVocab'
 
-function CategoryGrid({ onSelect }) {
+function CategoryGrid({ customWords, onSelect }) {
   return (
     <div className="p-4 flex flex-col gap-5">
       <div>
@@ -17,7 +19,9 @@ function CategoryGrid({ onSelect }) {
 
       <div className="grid grid-cols-2 gap-3">
         {categories.map((cat, i) => {
-          const count = vocabulary.filter((w) => w.category === cat.id).length
+          const builtInCount = vocabulary.filter((w) => w.category === cat.id).length
+          const customCount  = customWords.filter((w) => w.category === cat.id).length
+          const count        = builtInCount + customCount
           return (
             <button
               key={cat.id}
@@ -49,8 +53,17 @@ function CategoryGrid({ onSelect }) {
   )
 }
 
-function WordList({ category, onBack }) {
-  const words = vocabulary.filter((w) => w.category === category.id)
+function WordList({ category, customWords, onBack, onAddWord }) {
+  const builtIn = vocabulary.filter((w) => w.category === category.id)
+  const custom  = customWords.filter((w) => w.category === category.id)
+  const words   = [...builtIn, ...custom]
+
+  const [modalOpen, setModalOpen] = useState(false)
+
+  function handleAdd(word) {
+    onAddWord(word)
+    setModalOpen(false)
+  }
 
   return (
     <div className="flex flex-col animate-fade-up">
@@ -77,6 +90,14 @@ function WordList({ category, onBack }) {
           <span className="ml-auto shrink-0 text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
             {words.length}
           </span>
+          <button
+            onClick={() => setModalOpen(true)}
+            aria-label="Add vocabulary"
+            className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90"
+            style={{ background: 'var(--btn-primary-gradient)' }}
+          >
+            <Plus className="h-4 w-4 text-white" />
+          </button>
         </div>
       </div>
 
@@ -92,12 +113,32 @@ function WordList({ category, onBack }) {
           </div>
         ))}
       </div>
+
+      {modalOpen && (
+        <AddVocabModal
+          category={category}
+          onClose={() => setModalOpen(false)}
+          onAdd={handleAdd}
+        />
+      )}
     </div>
   )
 }
 
 export default function CategoryPage() {
+  const { customWords, addWord } = useCustomVocab()
   const [selected, setSelected] = useState(null)
-  if (selected) return <WordList category={selected} onBack={() => setSelected(null)} />
-  return <CategoryGrid onSelect={setSelected} />
+
+  if (selected) {
+    return (
+      <WordList
+        category={selected}
+        customWords={customWords}
+        onBack={() => setSelected(null)}
+        onAddWord={addWord}
+      />
+    )
+  }
+
+  return <CategoryGrid customWords={customWords} onSelect={setSelected} />
 }
