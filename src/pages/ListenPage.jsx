@@ -243,6 +243,7 @@ export default function ListenPage() {
   const activeToken = useRef(0)
   const audioRef = useRef(null)
   const abortRef = useRef(null)
+  const sentenceResetRef = useRef(null)
 
   function cancelAudio() {
     if (abortRef.current) { abortRef.current.abort(); abortRef.current = null }
@@ -379,6 +380,7 @@ export default function ListenPage() {
 
   async function handlePlay() {
     if (!content || loading) return
+    sentenceResetRef.current?.()
     setPaused(false)
     if (level === 1 && word) {
       speakStatic(word.id, speed, () => setPlaying(true), () => { setPlaying(false); setPaused(false) })
@@ -397,6 +399,7 @@ export default function ListenPage() {
 
   async function handleReplay() {
     if (!content) return
+    sentenceResetRef.current?.()
     setPaused(false)
     if (level === 1 && word) {
       speakStatic(word.id, speed, () => setPlaying(true), () => { setPlaying(false); setPaused(false) })
@@ -519,10 +522,21 @@ export default function ListenPage() {
               {/* Revealed card */}
               {content && answered && (
                 <div className="w-full card-frosted p-5 flex flex-col gap-3 animate-fade-up">
-                  <p
-                    className="text-xl font-bold text-foreground leading-snug font-heading [&_strong]:text-primary"
-                    dangerouslySetInnerHTML={{ __html: content.french }}
-                  />
+                  {level === 3 ? (
+                    <SentencePlayer
+                      sentences={splitSentences(content.french)}
+                      speed={speed}
+                      speakFrench={speakFrench}
+                      cancelAudio={cancelAudio}
+                      onTakeoverAudio={() => { setPlaying(false); setPaused(false) }}
+                      registerCancel={(fn) => { sentenceResetRef.current = fn }}
+                    />
+                  ) : (
+                    <p
+                      className="text-xl font-bold text-foreground leading-snug font-heading [&_strong]:text-primary"
+                      dangerouslySetInnerHTML={{ __html: content.french }}
+                    />
+                  )}
                   {content.phonetic && (
                     <p className="text-sm text-muted-foreground -mt-2 tracking-wide">
                       {content.phonetic}
