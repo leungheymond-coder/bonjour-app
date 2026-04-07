@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Sparkles, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -65,6 +65,7 @@ export default function AddVocabModal({ category, onClose, onAdd }) {
         body: JSON.stringify(word),
       })
       if (!res.ok) throw new Error(`${res.status}`)
+      setStatus('idle')
       onAdd(word)
     } catch {
       setErrorMsg('Failed to save word. Please try again.')
@@ -73,6 +74,12 @@ export default function AddVocabModal({ category, onClose, onAdd }) {
   }
 
   const canSubmit = french.trim() && english.trim() && chinese.trim() && !busy
+
+  useEffect(() => {
+    function onKey(e) { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
@@ -116,6 +123,7 @@ export default function AddVocabModal({ category, onClose, onAdd }) {
                 value={french}
                 onChange={(e) => setFrench(e.target.value)}
                 placeholder="e.g. bonjour"
+                maxLength={200}
                 className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
                 autoFocus
               />
@@ -150,6 +158,7 @@ export default function AddVocabModal({ category, onClose, onAdd }) {
               value={phonetic}
               onChange={(e) => setPhonetic(e.target.value)}
               placeholder="e.g. bon-ZHOOR"
+              maxLength={100}
               className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
           </div>
@@ -164,6 +173,7 @@ export default function AddVocabModal({ category, onClose, onAdd }) {
               value={english}
               onChange={(e) => setEnglish(e.target.value)}
               placeholder="e.g. hello / good morning"
+              maxLength={200}
               className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
           </div>
@@ -178,6 +188,7 @@ export default function AddVocabModal({ category, onClose, onAdd }) {
               value={chinese}
               onChange={(e) => setChinese(e.target.value)}
               placeholder="e.g. 你好 / 早安"
+              maxLength={200}
               className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
           </div>
@@ -192,6 +203,7 @@ export default function AddVocabModal({ category, onClose, onAdd }) {
               value={example}
               onChange={(e) => setExample(e.target.value)}
               placeholder="e.g. Bonjour, comment allez-vous ?"
+              maxLength={400}
               className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
           </div>

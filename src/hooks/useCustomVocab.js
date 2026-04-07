@@ -16,7 +16,9 @@ export function useCustomVocab() {
   }, [customWords])
 
   function addWord(word) {
-    setCustomWords((prev) => [...prev, word])
+    setCustomWords((prev) =>
+      prev.some((w) => w.id === word.id) ? prev : [...prev, word]
+    )
   }
 
   return { customWords, addWord }

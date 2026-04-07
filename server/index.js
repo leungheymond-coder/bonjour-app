@@ -121,7 +121,7 @@ app.use('/custom-audio', express.static(customAudioDir))
 
 app.post('/api/enrich', async (req, res) => {
   const { french } = req.body
-  if (!french) return res.status(400).json({ error: 'Missing required field: french.' })
+  if (!french || french.length > 300) return res.status(400).json({ error: 'Missing or invalid french field.' })
 
   const prompt = `You are a French language teacher. Given this French word or phrase: "${french}"
 
@@ -159,6 +159,10 @@ app.post('/api/custom-word', async (req, res) => {
 
   if (!id || !french || !english || !chinese) {
     return res.status(400).json({ error: 'Missing required fields: id, french, english, chinese.' })
+  }
+
+  if (!/^custom_\d+$/.test(id)) {
+    return res.status(400).json({ error: 'Invalid id format.' })
   }
 
   try {
