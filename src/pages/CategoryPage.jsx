@@ -35,11 +35,11 @@ function CategoryGrid({ customWords, onSelect }) {
             >
               <span className="text-3xl">{cat.emoji}</span>
               <div>
-                <p className="font-semibold text-foreground text-sm leading-tight">
-                  {cat.label}
+                <p className="font-semibold text-foreground text-sm leading-tight font-heading">
+                  {cat.labelFrench}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {cat.labelChinese}
+                  {cat.label}
                 </p>
               </div>
               <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
@@ -83,9 +83,9 @@ function WordList({ category, customWords, onBack, onAddWord, onRemoveWord }) {
           <span className="text-xl">{category.emoji}</span>
           <div className="min-w-0">
             <p className="font-bold text-foreground leading-tight font-heading truncate">
-              {category.label}
+              {category.labelFrench}
             </p>
-            <p className="text-xs text-muted-foreground">{category.labelChinese}</p>
+            <p className="text-xs text-muted-foreground">{category.label}</p>
           </div>
           <span className="ml-auto shrink-0 text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
             {words.length}

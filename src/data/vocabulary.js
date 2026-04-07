@@ -362,6 +362,7 @@ export const categories = [
   {
     id: "greetings",
     label: "Greetings & Basics",
+    labelFrench: "Salutations & Bases",
     labelChinese: "問候與基礎用語",
     emoji: "👋",
     color: "#E8C547",
@@ -369,6 +370,7 @@ export const categories = [
   {
     id: "verbs",
     label: "Verbs",
+    labelFrench: "Verbes",
     labelChinese: "動詞",
     emoji: "⚡",
     color: "#5B8DEF",
@@ -376,6 +378,7 @@ export const categories = [
   {
     id: "home",
     label: "Home & Daily Life",
+    labelFrench: "Maison & Vie Quotidienne",
     labelChinese: "家居與日常生活",
     emoji: "🏠",
     color: "#6DC47E",
@@ -383,6 +386,7 @@ export const categories = [
   {
     id: "food",
     label: "Food & Drink",
+    labelFrench: "Nourriture & Boissons",
     labelChinese: "飲食",
     emoji: "🥐",
     color: "#EF8C5B",
@@ -390,6 +394,7 @@ export const categories = [
   {
     id: "numbers",
     label: "Numbers",
+    labelFrench: "Nombres",
     labelChinese: "數字",
     emoji: "🔢",
     color: "#B45BEF",
@@ -397,6 +402,7 @@ export const categories = [
   {
     id: "time",
     label: "Time & Days",
+    labelFrench: "Temps & Jours",
     labelChinese: "時間與星期",
     emoji: "🕐",
     color: "#EF5B7A",
@@ -404,6 +410,7 @@ export const categories = [
   {
     id: "sport",
     label: "Sport",
+    labelFrench: "Sport",
     labelChinese: "運動",
     emoji: "⚽",
     color: "#EF4444",
@@ -411,6 +418,7 @@ export const categories = [
   {
     id: "animals",
     label: "Animals",
+    labelFrench: "Animaux",
     labelChinese: "動物",
     emoji: "🦁",
     color: "#10B981",
@@ -418,6 +426,7 @@ export const categories = [
   {
     id: "environment",
     label: "Environment",
+    labelFrench: "Environnement",
     labelChinese: "環境",
     emoji: "🌿",
     color: "#22C55E",
@@ -425,6 +434,7 @@ export const categories = [
   {
     id: "travel",
     label: "Travel",
+    labelFrench: "Voyage",
     labelChinese: "旅行",
     emoji: "✈️",
     color: "#0EA5E9",
@@ -432,6 +442,7 @@ export const categories = [
   {
     id: "jobs",
     label: "Jobs & Volunteering",
+    labelFrench: "Emplois & Bénévolat",
     labelChinese: "職業與義工",
     emoji: "💼",
     color: "#F97316",
@@ -439,6 +450,7 @@ export const categories = [
   {
     id: "school",
     label: "School",
+    labelFrench: "École",
     labelChinese: "學校",
     emoji: "📚",
     color: "#8B5CF6",
@@ -446,6 +458,7 @@ export const categories = [
   {
     id: "leisure",
     label: "Leisure Activities",
+    labelFrench: "Activités de Loisirs",
     labelChinese: "休閒活動",
     emoji: "🎨",
     color: "#EC4899",
