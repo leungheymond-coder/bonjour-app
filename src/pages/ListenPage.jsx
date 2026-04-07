@@ -59,10 +59,10 @@ function LevelSelector({ value, onChange }) {
           key={l.id}
           onClick={() => onChange(l.id)}
           className={cn(
-            'flex flex-col items-center rounded-2xl border py-3 px-2 transition-all duration-200',
+            'flex flex-col items-center rounded-lg border py-3 px-2 transition-all duration-200',
             value === l.id
-              ? 'border-primary bg-primary text-primary-foreground shadow-sm'
-              : 'border-border bg-card text-muted-foreground hover:bg-muted'
+              ? 'btn-primary'
+              : 'card-frosted text-muted-foreground hover:opacity-80'
           )}
         >
           <span className="text-xs font-bold">{l.label}</span>
@@ -104,10 +104,10 @@ function SpeedSelector({ value, onChange }) {
             key={s.value}
             onClick={() => onChange(s.value)}
             className={cn(
-              'rounded-xl border px-3 py-1 text-xs font-semibold transition-all duration-200',
+              'rounded-md border px-3 py-1 text-xs font-semibold transition-all duration-200',
               value === s.value
-                ? 'border-primary bg-primary text-primary-foreground'
-                : 'border-border bg-card text-muted-foreground hover:bg-muted'
+                ? 'btn-primary !w-auto !py-1 !px-3 !text-xs'
+                : 'card-frosted text-muted-foreground hover:opacity-80'
             )}
           >
             {s.label}
@@ -377,7 +377,10 @@ export default function ListenPage() {
                   aria-label="Replay"
                   className="flex flex-col items-center gap-1.5"
                 >
-                  <span className="flex items-center justify-center w-20 h-20 rounded-full bg-primary text-primary-foreground shadow-lg hover:opacity-90 transition-all active:scale-95">
+                  <span
+                    className="flex items-center justify-center w-20 h-20 rounded-full text-white shadow-lg hover:opacity-90 transition-all active:scale-95"
+                    style={{ background: 'var(--btn-primary-gradient)', boxShadow: 'var(--btn-primary-shadow)' }}
+                  >
                     <RotateCcw className="h-7 w-7" />
                   </span>
                   <span className="text-xs text-muted-foreground">Replay</span>
@@ -389,10 +392,12 @@ export default function ListenPage() {
                   aria-label={ttsLoading ? 'Cancel' : playing ? 'Pause' : 'Play'}
                   className={cn(
                     'flex items-center justify-center w-20 h-20 rounded-full shadow-lg transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed',
+                    'text-white',
                     playing
-                      ? 'bg-primary text-primary-foreground scale-105 animate-pulse-ring'
-                      : 'bg-primary text-primary-foreground hover:opacity-90'
+                      ? 'scale-105 animate-pulse-ring'
+                      : 'hover:opacity-90'
                   )}
+                  style={{ background: 'var(--btn-primary-gradient)', boxShadow: 'var(--btn-primary-shadow)' }}
                 >
                   {ttsLoading
                     ? <Loader2 className="h-8 w-8 animate-spin" />
@@ -412,7 +417,7 @@ export default function ListenPage() {
               {content && !answered && (
                 <button
                   onClick={() => setRevealed(true)}
-                  className="w-full rounded-2xl border-2 border-dashed border-border bg-card py-4 text-sm font-semibold text-muted-foreground hover:bg-muted hover:border-primary/30 transition-all duration-200"
+                  className="btn-secondary"
                 >
                   Reveal Answer
                 </button>
@@ -420,7 +425,7 @@ export default function ListenPage() {
 
               {/* Revealed card */}
               {content && answered && (
-                <div className="w-full rounded-2xl border border-border bg-card p-5 flex flex-col gap-3 animate-fade-up shadow-sm">
+                <div className="w-full card-frosted p-5 flex flex-col gap-3 animate-fade-up">
                   <p
                     className="text-xl font-bold text-foreground leading-snug font-heading [&_strong]:text-primary"
                     dangerouslySetInnerHTML={{ __html: content.french }}
@@ -441,7 +446,7 @@ export default function ListenPage() {
               {answered && (
                 <button
                   onClick={handleNext}
-                  className="w-full rounded-2xl bg-primary text-primary-foreground py-3.5 font-bold text-base shadow-sm hover:opacity-90 active:scale-[0.98] transition-all animate-fade-up"
+                  className="btn-primary animate-fade-up"
                 >
                   Next →
                 </button>
