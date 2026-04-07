@@ -160,34 +160,34 @@ export default function AddVocabModal({ category, onClose, onAdd }) {
             </div>
           </div>
 
-          {/* Pronunciation */}
-          <div>
-            <label className="text-xs font-semibold text-muted-foreground mb-1 block">
-              Pronunciation
-            </label>
-            <input
-              type="text"
-              value={phonetic}
-              onChange={(e) => setPhonetic(e.target.value)}
-              placeholder="e.g. bon-ZHOOR"
-              maxLength={100}
-              className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
-            />
-          </div>
-
-          {/* English */}
-          <div>
-            <label className="text-xs font-semibold text-muted-foreground mb-1 block">
-              English <span className="text-destructive">*</span>
-            </label>
-            <input
-              type="text"
-              value={english}
-              onChange={(e) => setEnglish(e.target.value)}
-              placeholder="e.g. hello / good morning"
-              maxLength={200}
-              className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
-            />
+          {/* Pronunciation + English — 2-col */}
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">
+                Pronunciation
+              </label>
+              <input
+                type="text"
+                value={phonetic}
+                onChange={(e) => setPhonetic(e.target.value)}
+                placeholder="e.g. bon-ZHOOR"
+                maxLength={100}
+                className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">
+                English <span className="text-destructive">*</span>
+              </label>
+              <input
+                type="text"
+                value={english}
+                onChange={(e) => setEnglish(e.target.value)}
+                placeholder="e.g. hello / good morning"
+                maxLength={200}
+                className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+              />
+            </div>
           </div>
 
           {/* Chinese */}
