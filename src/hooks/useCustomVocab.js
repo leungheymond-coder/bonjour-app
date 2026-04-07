@@ -1,0 +1,23 @@
+import { useState, useEffect } from 'react'
+
+const STORAGE_KEY = 'bonjour_custom_vocab'
+
+export function useCustomVocab() {
+  const [customWords, setCustomWords] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
+    } catch {
+      return []
+    }
+  })
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(customWords))
+  }, [customWords])
+
+  function addWord(word) {
+    setCustomWords((prev) => [...prev, word])
+  }
+
+  return { customWords, addWord }
+}
