@@ -147,7 +147,7 @@ export default function AddVocabModal({ category, onClose, onAdd }) {
                 disabled={!french.trim() || isEnriching}
                 aria-label="Generate fields with AI"
                 className={cn(
-                  'btn-secondary flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-all duration-200',
+                  'flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-primary/30 bg-primary/10 text-primary transition-all duration-200',
                   (!french.trim() || isEnriching) && 'opacity-50 cursor-not-allowed'
                 )}
               >
