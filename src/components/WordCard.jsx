@@ -35,7 +35,8 @@ export default function WordCard({ word }) {
     globalStop = cancelSpeak
 
     setAudioError(false)
-    const audio = new Audio(`/audio/${word.id}.mp3`)
+    const audioPath = word.isCustom ? `/custom-audio/${word.id}.mp3` : `/audio/${word.id}.mp3`
+    const audio = new Audio(audioPath)
     audioRef.current = audio
 
     audio.onended = () => {
