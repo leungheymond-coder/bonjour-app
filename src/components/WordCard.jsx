@@ -1,16 +1,17 @@
 import { useState, useRef, useCallback } from 'react'
-import { Volume2, Pause, Star, AlertCircle } from 'lucide-react'
+import { Volume2, Pause, Star, AlertCircle, Trash2 } from 'lucide-react'
 import { useFavourites } from '@/hooks/useFavourites'
 import { cn } from '@/lib/utils'
 
 // Global: only one WordCard plays at a time
 let globalStop = null
 
-export default function WordCard({ word }) {
+export default function WordCard({ word, onRemove }) {
   const { isFavourite, toggleFavourite } = useFavourites()
   const [speaking, setSpeaking] = useState(false)
   const [audioError, setAudioError] = useState(false)
   const [starAnimating, setStarAnimating] = useState(false)
+  const [confirming, setConfirming] = useState(false)
   const starred = isFavourite(word.id)
   const audioRef = useRef(null)
 
@@ -67,6 +68,11 @@ export default function WordCard({ word }) {
     setTimeout(() => setStarAnimating(false), 300)
   }, [word.id, toggleFavourite])
 
+  function handleConfirmDelete() {
+    if (starred) toggleFavourite(word.id)
+    onRemove(word.id)
+  }
+
   return (
     <div className="card-frosted p-4 flex flex-col gap-3">
       {/* Header */}
@@ -110,6 +116,15 @@ export default function WordCard({ word }) {
           >
             <Star className={cn('h-4 w-4', starred && 'fill-primary')} />
           </button>
+          {onRemove && word.isCustom && (
+            <button
+              onClick={() => setConfirming(true)}
+              aria-label="Delete word"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors duration-200 active:scale-90"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -124,6 +139,27 @@ export default function WordCard({ word }) {
         <p className="text-xs text-muted-foreground border-t border-primary/15 pt-3 italic leading-relaxed">
           {word.example}
         </p>
+      )}
+
+      {/* Delete confirmation */}
+      {confirming && (
+        <div className="flex items-center justify-between border-t border-destructive/20 pt-3 gap-2">
+          <p className="text-xs text-destructive font-medium">Delete this word?</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setConfirming(false)}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-muted text-muted-foreground hover:bg-border transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmDelete}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )

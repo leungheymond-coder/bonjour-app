@@ -1,10 +1,14 @@
 import { useFavourites } from '@/hooks/useFavourites'
+import { useCustomVocab } from '@/hooks/useCustomVocab'
 import { getById } from '@/data/vocabulary'
 import WordCard from '@/components/WordCard'
 
 export default function FavouritesPage() {
   const { favourites } = useFavourites()
-  const words = favourites.map(getById).filter(Boolean)
+  const { customWords } = useCustomVocab()
+  const words = favourites
+    .map((id) => getById(id) || customWords.find((w) => w.id === id))
+    .filter(Boolean)
 
   return (
     <div className="flex flex-col gap-4 p-4">

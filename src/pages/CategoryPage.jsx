@@ -53,7 +53,7 @@ function CategoryGrid({ customWords, onSelect }) {
   )
 }
 
-function WordList({ category, customWords, onBack, onAddWord }) {
+function WordList({ category, customWords, onBack, onAddWord, onRemoveWord }) {
   const builtIn = vocabulary.filter((w) => w.category === category.id)
   const custom  = customWords.filter((w) => w.category === category.id)
   const words   = [...builtIn, ...custom]
@@ -109,7 +109,7 @@ function WordList({ category, customWords, onBack, onAddWord }) {
             className="animate-fade-up"
             style={{ animationDelay: `${i * 40}ms` }}
           >
-            <WordCard word={word} />
+            <WordCard word={word} onRemove={word.isCustom ? onRemoveWord : undefined} />
           </div>
         ))}
       </div>
@@ -126,7 +126,7 @@ function WordList({ category, customWords, onBack, onAddWord }) {
 }
 
 export default function CategoryPage() {
-  const { customWords, addWord } = useCustomVocab()
+  const { customWords, addWord, removeWord } = useCustomVocab()
   const [selected, setSelected] = useState(null)
 
   if (selected) {
@@ -136,6 +136,7 @@ export default function CategoryPage() {
         customWords={customWords}
         onBack={() => setSelected(null)}
         onAddWord={addWord}
+        onRemoveWord={removeWord}
       />
     )
   }

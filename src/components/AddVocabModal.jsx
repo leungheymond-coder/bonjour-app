@@ -91,7 +91,7 @@ export default function AddVocabModal({ category, onClose, onAdd }) {
       />
 
       {/* Sheet */}
-      <div className="relative card-frosted rounded-t-2xl p-5 flex flex-col gap-4 animate-fade-up">
+      <div className="relative card-frosted rounded-t-2xl p-5 flex flex-col gap-4 animate-fade-up" style={{ background: 'var(--background)' }}>
         {/* Drag handle */}
         <div className="w-9 h-1 rounded-full bg-border/40 mx-auto -mt-1 mb-1" />
 

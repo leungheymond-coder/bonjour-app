@@ -21,5 +21,9 @@ export function useCustomVocab() {
     )
   }
 
-  return { customWords, addWord }
+  function removeWord(id) {
+    setCustomWords((prev) => prev.filter((w) => w.id !== id))
+  }
+
+  return { customWords, addWord, removeWord }
 }
