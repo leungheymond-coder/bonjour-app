@@ -156,10 +156,11 @@ function SentencePlayer({ sentences, speed, speakFrench, cancelAudio, onTakeover
   }, [registerCancel])
 
   async function handleSentencePlay(i) {
-    if (sentenceIdx === i) {
-      // Tap playing sentence — cancel it
+    if (sentenceIdx === i || sentenceLoading === i) {
+      // Tap active sentence (playing or loading) — cancel it
       cancelAudio()
       setSentenceIdx(null)
+      setSentenceLoading(null)
       return
     }
     // Cancel current audio (big play or another sentence), reset big play UI
@@ -194,7 +195,8 @@ function SentencePlayer({ sentences, speed, speakFrench, cancelAudio, onTakeover
           >
             <button
               onClick={() => handleSentencePlay(i)}
-              aria-label={isPlaying ? 'Pause sentence' : `Play sentence ${i + 1}`}
+              disabled={isLoading}
+              aria-label={isLoading ? `Loading sentence ${i + 1}` : isPlaying ? 'Pause sentence' : `Play sentence ${i + 1}`}
               className={cn(
                 'flex-shrink-0 mt-0.5 flex items-center justify-center w-6 h-6 rounded-full text-white transition-all duration-200',
                 (isPlaying || isLoading) ? 'opacity-100' : 'opacity-50'
