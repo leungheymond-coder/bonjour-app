@@ -7,8 +7,11 @@ import Favourites from '@/pages/FavouritesPage'
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="flex flex-col min-h-svh max-w-lg mx-auto bg-background">
-        <main className="flex-1 pb-16">
+      <div className="relative flex flex-col min-h-svh max-w-lg mx-auto bg-background overflow-hidden">
+        <div className="blob-1" />
+        <div className="blob-2" />
+        <div className="blob-3" />
+        <main className="relative z-10 flex-1 pb-16">
           <Routes>
             <Route path="/" element={<Navigate to="/categories" replace />} />
             <Route path="/categories" element={<Categories />} />
