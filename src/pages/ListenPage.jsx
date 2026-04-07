@@ -212,11 +212,17 @@ export default function ListenPage() {
         signal: controller.signal,
       })
 
-      if (controller.signal.aborted) return
+      if (controller.signal.aborted) {
+        if (onLoadingChange) onLoadingChange(false); else setTtsLoading(false)
+        return
+      }
       if (!response.ok) throw new Error(`TTS error ${response.status}`)
 
       const blob = await response.blob()
-      if (controller.signal.aborted) return
+      if (controller.signal.aborted) {
+        if (onLoadingChange) onLoadingChange(false); else setTtsLoading(false)
+        return
+      }
 
       if (onLoadingChange) onLoadingChange(false); else setTtsLoading(false)
 
