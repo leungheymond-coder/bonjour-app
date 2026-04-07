@@ -144,6 +144,83 @@ function EmptyState({ category }) {
   )
 }
 
+function SentencePlayer({ sentences, speed, speakFrench, cancelAudio, onTakeoverAudio, registerCancel }) {
+  const [sentenceIdx, setSentenceIdx] = useState(null)
+  const [sentenceLoading, setSentenceLoading] = useState(null)
+
+  useEffect(() => {
+    registerCancel(() => {
+      setSentenceIdx(null)
+      setSentenceLoading(null)
+    })
+  }, [registerCancel])
+
+  async function handleSentencePlay(i) {
+    if (sentenceIdx === i) {
+      // Tap playing sentence — cancel it
+      cancelAudio()
+      setSentenceIdx(null)
+      return
+    }
+    // Cancel current audio (big play or another sentence), reset big play UI
+    cancelAudio()
+    onTakeoverAudio()
+    try {
+      await speakFrench(
+        sentences[i],
+        () => { setSentenceLoading(null); setSentenceIdx(i) },
+        () => { setSentenceIdx(null) },
+        speed,
+        (isLoading) => setSentenceLoading(isLoading ? i : null)
+      )
+    } catch {
+      setSentenceLoading(null)
+      setSentenceIdx(null)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      {sentences.map((sentence, i) => {
+        const isPlaying = sentenceIdx === i
+        const isLoading = sentenceLoading === i
+        return (
+          <div
+            key={i}
+            className={cn(
+              'flex items-start gap-2.5 rounded-lg px-2 py-1.5 transition-all duration-200',
+              isPlaying && 'card-frosted'
+            )}
+          >
+            <button
+              onClick={() => handleSentencePlay(i)}
+              aria-label={isPlaying ? 'Pause sentence' : `Play sentence ${i + 1}`}
+              className={cn(
+                'flex-shrink-0 mt-0.5 flex items-center justify-center w-6 h-6 rounded-full text-white transition-all duration-200',
+                (isPlaying || isLoading) ? 'opacity-100' : 'opacity-50'
+              )}
+              style={{ background: 'var(--btn-primary-gradient)' }}
+            >
+              {isLoading
+                ? <Loader2 className="h-3 w-3 animate-spin" />
+                : isPlaying
+                  ? <Pause className="h-3 w-3" />
+                  : <Volume2 className="h-3 w-3" />
+              }
+            </button>
+            <p className={cn(
+              'text-sm leading-relaxed transition-all duration-200',
+              isPlaying ? 'text-foreground font-semibold' : 'text-muted-foreground'
+            )}>
+              {sentence}
+            </p>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function ListenPage() {
