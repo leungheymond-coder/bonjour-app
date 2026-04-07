@@ -39,49 +39,67 @@
   --radius-3xl: calc(var(--radius) * 2.5);
 }
 
-/* ── Light mode — Parisian Moderne ── */
+/* ── Light mode — Lavender Mist ── */
 :root {
-  --background: oklch(0.96 0.015 82);
-  --foreground: oklch(0.11 0.02 52);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.11 0.02 52);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.11 0.02 52);
-  --primary: oklch(0.56 0.12 72);
-  --primary-foreground: oklch(0.11 0.02 52);
-  --secondary: oklch(0.93 0.02 82);
-  --secondary-foreground: oklch(0.11 0.02 52);
-  --muted: oklch(0.93 0.02 82);
-  --muted-foreground: oklch(0.44 0.02 65);
-  --accent: oklch(0.93 0.02 82);
-  --accent-foreground: oklch(0.11 0.02 52);
-  --destructive: oklch(0.55 0.15 25);
-  --border: oklch(0.88 0.025 78);
-  --input: oklch(0.88 0.025 78);
-  --ring: oklch(0.56 0.12 72);
-  --radius: 1rem;
+  --background:         oklch(0.965 0.012 290);
+  --foreground:         oklch(0.10  0.02  280);
+  --card:               oklch(1 0 0 / 0.55);
+  --card-foreground:    oklch(0.10  0.02  280);
+  --popover:            oklch(1 0 0 / 0.75);
+  --popover-foreground: oklch(0.10  0.02  280);
+  --primary:            oklch(0.48  0.16  290);
+  --primary-foreground: oklch(1 0 0);
+  --secondary:          oklch(1 0 0 / 0.55);
+  --secondary-foreground: oklch(0.10 0.02 280);
+  --muted:              oklch(1 0 0 / 0.40);
+  --muted-foreground:   oklch(0.40  0.02  280);
+  --accent:             oklch(1 0 0 / 0.55);
+  --accent-foreground:  oklch(0.10  0.02  280);
+  --destructive:        oklch(0.55  0.18  25);
+  --border:             oklch(0.80  0.04  290 / 0.35);
+  --input:              oklch(0.80  0.04  290 / 0.35);
+  --ring:               oklch(0.48  0.16  290);
+  --radius:             0.625rem;
+
+  /* Gradient button */
+  --btn-primary-gradient: linear-gradient(135deg, #7B5CC4 0%, #9B6ED8 50%, #8B60C8 100%);
+  --btn-primary-shadow:   0 2px 12px rgba(123, 92, 196, 0.30);
+
+  /* Background blobs */
+  --blob-1: radial-gradient(ellipse, #C9B8F0 0%, #B8CEFA 40%, transparent 70%);
+  --blob-2: radial-gradient(ellipse, #EAB8E8 0%, transparent 70%);
+  --blob-3: radial-gradient(ellipse, #B8D8FA 0%, transparent 70%);
 }
 
-/* ── Dark mode — Parisian Moderne ── */
+/* ── Dark mode — Lavender Mist ── */
 .dark {
-  --background: oklch(0.09 0.01 52);
-  --foreground: oklch(0.93 0.025 82);
-  --card: oklch(0.13 0.01 52);
-  --card-foreground: oklch(0.93 0.025 82);
-  --popover: oklch(0.13 0.01 52);
-  --popover-foreground: oklch(0.93 0.025 82);
-  --primary: oklch(0.70 0.1 74);
-  --primary-foreground: oklch(0.09 0.01 52);
-  --secondary: oklch(0.17 0.01 52);
-  --secondary-foreground: oklch(0.93 0.025 82);
-  --muted: oklch(0.15 0.01 52);
-  --muted-foreground: oklch(0.60 0.025 68);
-  --accent: oklch(0.17 0.01 52);
-  --accent-foreground: oklch(0.93 0.025 82);
-  --destructive: oklch(0.58 0.15 25);
-  --border: oklch(0.19 0.015 52);
-  --input: oklch(0.19 0.015 52);
-  --ring: oklch(0.70 0.1 74);
+  --background:         oklch(0.09  0.015 280);
+  --foreground:         oklch(0.93  0.015 285);
+  --card:               oklch(1 0 0 / 0.07);
+  --card-foreground:    oklch(0.93  0.015 285);
+  --popover:            oklch(0.13  0.015 280);
+  --popover-foreground: oklch(0.93  0.015 285);
+  --primary:            oklch(0.63  0.13  290);
+  --primary-foreground: oklch(1 0 0);
+  --secondary:          oklch(1 0 0 / 0.07);
+  --secondary-foreground: oklch(0.93 0.015 285);
+  --muted:              oklch(1 0 0 / 0.07);
+  --muted-foreground:   oklch(0.60  0.02  280);
+  --accent:             oklch(1 0 0 / 0.07);
+  --accent-foreground:  oklch(0.93  0.015 285);
+  --destructive:        oklch(0.60  0.18  25);
+  --border:             oklch(0.80  0.04  290 / 0.12);
+  --input:              oklch(0.80  0.04  290 / 0.12);
+  --ring:               oklch(0.63  0.13  290);
+
+  /* Gradient button */
+  --btn-primary-gradient: linear-gradient(135deg, #8A6AD4 0%, #B090F0 50%, #9878E0 100%);
+  --btn-primary-shadow:   0 2px 12px rgba(155, 128, 224, 0.30);
+
+  /* Background blobs */
+  --blob-1: radial-gradient(ellipse, #4A35A0 0%, #3545A0 40%, transparent 70%);
+  --blob-2: radial-gradient(ellipse, #7A35A0 0%, transparent 70%);
+  --blob-3: radial-gradient(ellipse, #2040A0 0%, transparent 70%);
 }
 
 @layer base {
@@ -92,15 +110,10 @@
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
   }
-}
-
-/* ── Gold ambient glow in dark mode ── */
-.dark body {
-  background-image: radial-gradient(
-    ellipse 70% 35% at 50% -5%,
-    color-mix(in oklch, var(--primary) 12%, transparent),
-    transparent 70%
-  );
+  .dark .btn-secondary {
+    background: rgba(168, 136, 248, 0.14);
+    border-color: rgba(168, 136, 248, 0.35);
+  }
 }
 
 /* ── Animation keyframes ── */
@@ -143,4 +156,94 @@
   .font-heading {
     font-family: var(--font-heading);
   }
+
+  /* ── Background blobs ── */
+  .blob-1 {
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: var(--blob-1);
+    opacity: 0.65;
+    filter: blur(35px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .blob-2 {
+    position: absolute;
+    top: 30px; left: -40px;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: var(--blob-2);
+    opacity: 0.45;
+    filter: blur(25px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .blob-3 {
+    position: absolute;
+    bottom: 80px; right: 10px;
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    background: var(--blob-3);
+    opacity: 0.35;
+    filter: blur(20px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Frosted glass surface ── */
+  .card-frosted {
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+
+  /* ── Primary button — gradient fill ── */
+  .btn-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    background: var(--btn-primary-gradient);
+    box-shadow: var(--btn-primary-shadow);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .btn-primary:hover  { opacity: 0.9; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── Secondary button — frosted fill ── */
+  .btn-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    background: rgba(155, 128, 224, 0.12);
+    border: 1.5px solid rgba(155, 128, 224, 0.40);
+    border-radius: var(--radius-sm);
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--primary);
+    text-align: center;
+    letter-spacing: 0.02em;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .btn-secondary:hover  { opacity: 0.85; }
+  .btn-secondary:active { transform: scale(0.98); }
 }
