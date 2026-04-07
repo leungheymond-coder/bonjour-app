@@ -92,6 +92,9 @@ export default function AddVocabModal({ category, onClose, onAdd }) {
 
       {/* Sheet */}
       <div className="relative card-frosted rounded-t-2xl p-5 flex flex-col gap-4 animate-fade-up">
+        {/* Drag handle */}
+        <div className="w-9 h-1 rounded-full bg-border/40 mx-auto -mt-1 mb-1" />
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -110,6 +113,13 @@ export default function AddVocabModal({ category, onClose, onAdd }) {
             <X className="h-4 w-4" />
           </button>
         </div>
+
+        {/* Hint */}
+        <p className="text-[11px] text-muted-foreground/80 leading-snug mb-3.5 -mt-1">
+          Type a French word, then tap{' '}
+          <span className="text-primary font-semibold">✨ AI Fill</span>
+          {' '}to auto-complete all fields.
+        </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           {/* French word + AI button */}
