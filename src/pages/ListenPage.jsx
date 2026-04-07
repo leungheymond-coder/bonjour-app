@@ -26,6 +26,14 @@ function sanitizeFrench(str) {
   return str.replace(/<(?!\/?(strong)(\s|>))[^>]*>/gi, '')
 }
 
+function splitSentences(html) {
+  const plain = html.replace(/<[^>]+>/g, '')
+  return plain
+    .split(/(?<=[.!?])\s+(?=[A-ZÀ-Ü"«])/)
+    .map(s => s.trim())
+    .filter(Boolean)
+}
+
 async function callClaude(word, level) {
   const response = await fetch(`${API_URL}/api/generate`, {
     method: 'POST',
@@ -186,9 +194,9 @@ export default function ListenPage() {
     })
   }
 
-  async function speakFrench(text, onStart, onEnd, rate = 1) {
+  async function speakFrench(text, onStart, onEnd, rate = 1, onLoadingChange = null) {
     cancelAudio()
-    setTtsLoading(true)
+    if (onLoadingChange) onLoadingChange(true); else setTtsLoading(true)
     setError(null)
 
     const controller = new AbortController()
@@ -210,7 +218,7 @@ export default function ListenPage() {
       const blob = await response.blob()
       if (controller.signal.aborted) return
 
-      setTtsLoading(false)
+      if (onLoadingChange) onLoadingChange(false); else setTtsLoading(false)
 
       const url = URL.createObjectURL(blob)
       const audio = new Audio(url)
@@ -222,7 +230,7 @@ export default function ListenPage() {
       if (onStart) onStart()
       audio.play()
     } catch (err) {
-      setTtsLoading(false)
+      if (onLoadingChange) onLoadingChange(false); else setTtsLoading(false)
       if (err.name === 'AbortError') return
       if (onEnd) onEnd()
       setError('Audio failed to load. Tap play to retry.')
