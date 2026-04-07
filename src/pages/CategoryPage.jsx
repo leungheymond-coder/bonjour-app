@@ -22,7 +22,7 @@ function CategoryGrid({ onSelect }) {
             <button
               key={cat.id}
               onClick={() => onSelect(cat)}
-              className="animate-fade-up rounded-2xl border border-border bg-card p-4 flex flex-col items-start gap-2 text-left shadow-sm hover:-translate-y-0.5 hover:shadow-md active:scale-[0.97] transition-all duration-200"
+              className="animate-fade-up card-frosted p-4 flex flex-col items-start gap-2 text-left hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200"
               style={{
                 borderLeftWidth: 4,
                 borderLeftColor: cat.color,
