@@ -238,7 +238,7 @@ export default function ListenPage() {
   const [playing, setPlaying] = useState(false)
   const [paused, setPaused] = useState(false)
   const [ttsLoading, setTtsLoading] = useState(false)
-  const [speed, setSpeed] = useState(0.75)
+  const [speed, setSpeed] = useState(1)
 
   const activeToken = useRef(0)
   const audioRef = useRef(null)
