@@ -74,6 +74,7 @@ export default function ExploreCard({ word, categoryColor, onAdd, isAdded }) {
         setPreviewing(false)
         setPreviewLoading(false)
         setPreviewError(true)
+        URL.revokeObjectURL(url)
         if (globalStop === cancelPreview) globalStop = null
         setTimeout(() => setPreviewError(false), 3000)
       })
@@ -101,7 +102,10 @@ export default function ExploreCard({ word, categoryColor, onAdd, isAdded }) {
   }
 
   return (
-    <div className="card-frosted p-4 flex flex-col gap-3">
+    <div
+      className="card-frosted p-4 flex flex-col gap-3"
+      style={{ borderLeftWidth: 3, borderLeftColor: categoryColor }}
+    >
       {/* Header row: french term + preview button */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
