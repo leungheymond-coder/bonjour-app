@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { ChevronLeft, RotateCcw, Loader2 } from 'lucide-react'
 import { categories, vocabulary } from '@/data/vocabulary'
 import ExploreCard from '@/components/ExploreCard'
@@ -7,7 +7,7 @@ import { useCustomVocab } from '@/hooks/useCustomVocab'
 const API_URL = import.meta.env.VITE_API_URL ?? ''
 
 export default function ExplorePage() {
-  const { addWord } = useCustomVocab()
+  const { addWord, customWords } = useCustomVocab()
 
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [words, setWords]                       = useState([])
@@ -15,14 +15,18 @@ export default function ExplorePage() {
   const [error, setError]                       = useState(null)
   const [addedIds, setAddedIds]                 = useState(new Set())
 
+  const fetchGenRef = useRef(0)
+
   async function fetchWords(category) {
+    const gen = ++fetchGenRef.current
     setLoading(true)
     setError(null)
     setWords([])
 
-    const existingFrench = vocabulary
-      .filter((w) => w.category === category.id)
-      .map((w) => w.french)
+    const existingFrench = [
+      ...vocabulary.filter((w) => w.category === category.id).map((w) => w.french),
+      ...customWords.filter((w) => w.category === category.id).map((w) => w.french),
+    ]
 
     try {
       const res = await fetch(`${API_URL}/api/explore`, {
@@ -36,11 +40,13 @@ export default function ExplorePage() {
       })
       if (!res.ok) throw new Error(`API error ${res.status}`)
       const data = await res.json()
+      if (gen !== fetchGenRef.current) return
       setWords(data.words)
     } catch {
+      if (gen !== fetchGenRef.current) return
       setError('Could not generate vocabulary.')
     } finally {
-      setLoading(false)
+      if (gen === fetchGenRef.current) setLoading(false)
     }
   }
 
