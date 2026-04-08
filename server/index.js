@@ -35,6 +35,17 @@ const limiter = rateLimit({
 })
 app.use('/api', limiter)
 
+// Stricter limit for AI-generative endpoints (30/hr per IP)
+const aiLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests — please try again later.' },
+})
+app.use('/api/explore', aiLimiter)
+app.use('/api/custom-word', aiLimiter)
+
 // ─── Health check ─────────────────────────────────────────────────────────────
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }))
@@ -201,13 +212,19 @@ app.post('/api/explore', async (req, res) => {
   }
 
   const safeExisting = Array.isArray(existingWords)
-    ? existingWords.filter((w) => typeof w === 'string').slice(0, 50).map((w) => w.slice(0, 100))
+    ? existingWords
+        .filter((w) => typeof w === 'string')
+        .slice(0, 50)
+        .map((w) => w.slice(0, 100).replace(/"/g, '\u2019'))
     : []
   const existingHint = safeExisting.length > 0
     ? `\n\nAvoid these words already in the library: ${safeExisting.join(', ')}`
     : ''
 
-  const prompt = `You are a French language teacher. Generate exactly 10 unique French words or short phrases for the category "${categoryLabel}" (${categoryId}).${existingHint}
+  const safeLabel = categoryLabel.replace(/"/g, '\u2019')
+  const safeId    = categoryId.replace(/[^a-zA-Z0-9_\-]/g, '')
+
+  const prompt = `You are a French language teacher. Generate exactly 10 unique French words or short phrases for the category "${safeLabel}" (${safeId}).${existingHint}
 
 Return ONLY valid JSON with no markdown or explanation:
 {"words":[{"french":"...","english":"...","chinese":"...","phonetic":"...","example":"..."},…]}

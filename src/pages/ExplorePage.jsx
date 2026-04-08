@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { ChevronLeft, RotateCcw, Loader2 } from 'lucide-react'
 import { categories, vocabulary } from '@/data/vocabulary'
 import ExploreCard from '@/components/ExploreCard'
@@ -68,7 +68,7 @@ export default function ExplorePage() {
     fetchWords(selectedCategory)
   }
 
-  async function handleAdd(word) {
+  const handleAdd = useCallback(async (word) => {
     const res = await fetch(`${API_URL}/api/custom-word`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -83,7 +83,7 @@ export default function ExplorePage() {
 
     addWord({ ...word, audioPath: `/custom-audio/${word.id}.mp3` })
     setAddedIds((prev) => new Set([...prev, word.id]))
-  }
+  }, [addWord])
 
   // ── Results view ──────────────────────────────────────────────────────────
 
