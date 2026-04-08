@@ -3,7 +3,9 @@ import { ChevronLeft, FolderPlus, Pencil, Trash2, Check, X } from 'lucide-react'
 import { vocabulary } from '@/data/vocabulary'
 import { useCustomVocab } from '@/hooks/useCustomVocab'
 import { useCollections } from '@/hooks/useCollections'
+import { useWordCustomizations, applyCustomizations } from '@/hooks/useWordCustomizations'
 import WordCard from '@/components/WordCard'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
 function FolderDetail({ folder, allWords, onBack }) {
   const words = folder.ids
@@ -117,10 +119,12 @@ function FolderCard({ folder, wordCount, onOpen, onRename, onDelete, initialEdit
 export default function CollectionsPage() {
   const { customWords } = useCustomVocab()
   const { collections, activeFolders, setFolderName, deleteFolder } = useCollections()
+  const { customizations } = useWordCustomizations()
   const [openFolder, setOpenFolder]   = useState(null)
   const [newFolderId, setNewFolderId] = useState(null)
+  const [folderToDelete, setFolderToDelete] = useState(null)
 
-  const allWords = [...vocabulary, ...customWords]
+  const allWords = applyCustomizations([...vocabulary, ...customWords], customizations)
 
   // Find the next available uncreated folder slot
   const emptySlot = ['folder_1', 'folder_2'].find(
@@ -157,7 +161,7 @@ export default function CollectionsPage() {
             wordCount={folder.ids.length}
             onOpen={() => setOpenFolder(folder.id)}
             onRename={(name) => { setFolderName(folder.id, name); setNewFolderId(null) }}
-            onDelete={() => deleteFolder(folder.id)}
+            onDelete={() => setFolderToDelete({ id: folder.id, name: folder.name })}
             initialEditing={folder.id === newFolderId}
           />
         ))}
@@ -172,6 +176,16 @@ export default function CollectionsPage() {
           </button>
         )}
       </div>
+
+      {folderToDelete && (
+        <ConfirmDialog
+          title={`Delete "${folderToDelete.name}"?`}
+          message="All words saved in this folder will be removed from it. The words themselves stay in your library."
+          confirmLabel="Delete Folder"
+          onConfirm={() => { deleteFolder(folderToDelete.id); setFolderToDelete(null) }}
+          onCancel={() => setFolderToDelete(null)}
+        />
+      )}
     </div>
   )
 }
