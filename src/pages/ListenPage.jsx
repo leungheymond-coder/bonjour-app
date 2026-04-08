@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { Volume2, Pause, RotateCcw, ChevronDown, Loader2 } from 'lucide-react'
+import { Volume2, Pause, RotateCcw, ChevronDown, Loader2, Bookmark, BookmarkCheck } from 'lucide-react'
 import { vocabulary, categories } from '@/data/vocabulary'
 import { useCollections } from '@/hooks/useCollections'
 import { useCustomVocab } from '@/hooks/useCustomVocab'
+import { useWordCustomizations, applyCustomizations } from '@/hooks/useWordCustomizations'
+import FolderPopover from '@/components/FolderPopover'
 import { cn } from '@/lib/utils'
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -11,8 +13,8 @@ const API_URL = import.meta.env.VITE_API_URL ?? ''
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function computePool(categoryId, favouriteIds, customWords) {
-  const all = [...vocabulary, ...customWords]
+function computePool(categoryId, favouriteIds, customWords, customizations) {
+  const all = applyCustomizations([...vocabulary, ...customWords], customizations)
   if (categoryId === 'favourites') return all.filter((w) => favouriteIds.includes(w.id))
   if (categoryId === 'all') return all
   return all.filter((w) => w.category === categoryId)
@@ -228,9 +230,10 @@ function SentencePlayer({ sentences, speed, speakFrench, cancelAudio, onTakeover
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function ListenPage() {
-  const { collections } = useCollections()
+  const { collections, isInAnyFolder } = useCollections()
   const favourites = collections.favourites.ids
   const { customWords } = useCustomVocab()
+  const { customizations } = useWordCustomizations()
 
   const [level, setLevel] = useState(1)
   const [category, setCategory] = useState('all')
@@ -244,6 +247,7 @@ export default function ListenPage() {
   const [ttsLoading, setTtsLoading] = useState(false)
   const [speed, setSpeed] = useState(1)
   const [sentenceSource, setSentenceSource] = useState('library') // 'library' | 'ai' | 'both'
+  const [savePopoverOpen, setSavePopoverOpen] = useState(false)
 
   const activeToken = useRef(0)
   const audioRef = useRef(null)
@@ -335,6 +339,7 @@ export default function ListenPage() {
     setContent(null)
     setError(null)
     setRevealed(false)
+    setSavePopoverOpen(false)
     setPlaying(false)
     setPaused(false)
 
@@ -363,7 +368,7 @@ export default function ListenPage() {
     // Runs once on mount to pick the initial word. customWords here is the
     // localStorage-hydrated initial value, which is correct. Subsequent pool
     // changes are handled by handleCategoryChange and handleNext.
-    const pool = computePool('all', [], customWords)
+    const pool = computePool('all', [], customWords, customizations)
     startRound(pickRandom(pool), 1)
     return () => cancelAudio()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -376,12 +381,12 @@ export default function ListenPage() {
 
   function handleCategoryChange(newCat) {
     setCategory(newCat)
-    const pool = computePool(newCat, favourites, customWords)
+    const pool = computePool(newCat, favourites, customWords, customizations)
     if (pool.length > 0) startRound(pickRandom(pool), level)
   }
 
   function handleNext() {
-    const pool = computePool(category, favourites, customWords)
+    const pool = computePool(category, favourites, customWords, customizations)
     if (pool.length === 0) return
     startRound(pickRandom(pool, word?.id), level)
   }
@@ -432,7 +437,7 @@ export default function ListenPage() {
     }
   }
 
-  const pool = computePool(category, favourites, customWords)
+  const pool = computePool(category, favourites, customWords, customizations)
   const isEmpty = pool.length === 0
   const answered = revealed
 
@@ -582,6 +587,35 @@ export default function ListenPage() {
                     <p className="text-base font-semibold text-foreground">{content.english}</p>
                     <p className="text-base text-muted-foreground">{content.chinese}</p>
                   </div>
+                  {/* Save button */}
+                  {word && (
+                    <div className="flex justify-end border-t border-border/30 pt-2 -mb-1">
+                      <div className="relative">
+                        <button
+                          onClick={() => setSavePopoverOpen((v) => !v)}
+                          aria-label="Save to folder"
+                          className={cn(
+                            'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors',
+                            isInAnyFolder(word.id)
+                              ? 'border-primary bg-primary/10 text-primary'
+                              : 'border-border text-muted-foreground hover:bg-muted'
+                          )}
+                        >
+                          {isInAnyFolder(word.id)
+                            ? <BookmarkCheck className="h-3.5 w-3.5 fill-primary" />
+                            : <Bookmark className="h-3.5 w-3.5" />
+                          }
+                          {isInAnyFolder(word.id) ? 'Saved' : 'Save'}
+                        </button>
+                        {savePopoverOpen && (
+                          <FolderPopover
+                            wordId={word.id}
+                            onClose={() => setSavePopoverOpen(false)}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
