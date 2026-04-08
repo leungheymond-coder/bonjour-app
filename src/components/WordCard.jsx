@@ -1,19 +1,27 @@
-import { useState, useRef, useCallback } from 'react'
-import { Volume2, Pause, Star, AlertCircle, Trash2 } from 'lucide-react'
-import { useFavourites } from '@/hooks/useFavourites'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { Volume2, Pause, Bookmark, BookmarkCheck, AlertCircle, Trash2, Loader2 } from 'lucide-react'
+import { useCollections } from '@/hooks/useCollections'
 import { cn } from '@/lib/utils'
+import FolderPopover from '@/components/FolderPopover'
 
 // Global: only one WordCard plays at a time
 let globalStop = null
 
 export default function WordCard({ word, onRemove }) {
-  const { isFavourite, toggleFavourite } = useFavourites()
-  const [speaking, setSpeaking] = useState(false)
-  const [audioError, setAudioError] = useState(false)
-  const [starAnimating, setStarAnimating] = useState(false)
-  const [confirming, setConfirming] = useState(false)
-  const starred = isFavourite(word.id)
-  const audioRef = useRef(null)
+  const { isInAnyFolder, removeWordFromAll } = useCollections()
+  const [speaking, setSpeaking]       = useState(false)
+  const [audioError, setAudioError]   = useState(false)
+  const [popoverOpen, setPopoverOpen] = useState(false)
+  const [confirming, setConfirming]   = useState(false)
+  const inAnyFolder = isInAnyFolder(word.id)
+  const audioRef    = useRef(null)
+
+  // audioPath === null means audio is still being generated
+  const audioPending = word.isCustom && word.audioPath === null
+
+  // cancelSpeakRef stores the latest cancelSpeak function so async callbacks
+  // can compare against globalStop without self-referencing inside useCallback
+  const cancelSpeakRef = useRef(null)
 
   const cancelSpeak = useCallback(() => {
     if (audioRef.current) {
@@ -22,21 +30,23 @@ export default function WordCard({ word, onRemove }) {
       audioRef.current = null
     }
     setSpeaking(false)
-    if (globalStop === cancelSpeak) globalStop = null
+    if (globalStop === cancelSpeakRef.current) globalStop = null
   }, [])
 
-  const handleSpeak = useCallback(() => {
-    if (speaking) {
-      cancelSpeak()
-      return
-    }
+  // Sync ref after each render (never during render)
+  useEffect(() => {
+    cancelSpeakRef.current = cancelSpeak
+  })
 
-    // Stop any other card that's playing
+  const handleSpeak = useCallback(() => {
+    if (audioPending) return
+    if (speaking) { cancelSpeak(); return }
+
     if (globalStop && globalStop !== cancelSpeak) globalStop()
     globalStop = cancelSpeak
 
     setAudioError(false)
-    const audioPath = word.isCustom ? `/custom-audio/${word.id}.mp3` : `/audio/${word.id}.mp3`
+    const audioPath = word.audioPath ?? `/audio/${word.id}.mp3`
     const audio = new Audio(audioPath)
     audioRef.current = audio
 
@@ -52,7 +62,6 @@ export default function WordCard({ word, onRemove }) {
       if (globalStop === cancelSpeak) globalStop = null
       setTimeout(() => setAudioError(false), 3000)
     }
-
     audio.play().then(() => setSpeaking(true)).catch(() => {
       audioRef.current = null
       setSpeaking(false)
@@ -60,16 +69,10 @@ export default function WordCard({ word, onRemove }) {
       if (globalStop === cancelSpeak) globalStop = null
       setTimeout(() => setAudioError(false), 3000)
     })
-  }, [word.id, speaking, cancelSpeak])
-
-  const handleStar = useCallback(() => {
-    toggleFavourite(word.id)
-    setStarAnimating(true)
-    setTimeout(() => setStarAnimating(false), 300)
-  }, [word.id, toggleFavourite])
+  }, [word.id, word.audioPath, audioPending, speaking, cancelSpeak])
 
   function handleConfirmDelete() {
-    if (starred) toggleFavourite(word.id)
+    removeWordFromAll(word.id)
     onRemove(word.id)
   }
 
@@ -78,44 +81,75 @@ export default function WordCard({ word, onRemove }) {
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="text-2xl font-bold text-foreground leading-tight truncate font-heading">
+          {/* Content type pill */}
+          <span className={cn(
+            'inline-block text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded mb-1',
+            word.contentType === 'sentence'
+              ? 'bg-amber-500/10 text-amber-500'
+              : 'bg-primary/10 text-primary'
+          )}>
+            {word.contentType === 'sentence' ? 'sentence' : 'vocab'}
+          </span>
+          <p className="text-2xl font-bold text-foreground leading-tight font-heading">
             {word.french}
           </p>
-          <p className="text-sm text-muted-foreground mt-0.5 tracking-wide">
-            {word.phonetic}
-          </p>
         </div>
+
         <div className="flex items-center gap-1 shrink-0 mt-0.5">
+          {/* Audio button */}
           <button
-            onClick={audioError ? undefined : handleSpeak}
-            aria-label={audioError ? 'Error' : speaking ? `Stop ${word.french}` : `Speak ${word.french}`}
+            onClick={audioPending || audioError ? undefined : handleSpeak}
+            aria-label={
+              audioPending  ? 'Generating audio…' :
+              audioError    ? 'Audio error' :
+              speaking      ? `Stop ${word.french}` :
+                              `Speak ${word.french}`
+            }
             className={cn(
               'w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90',
               audioError
                 ? 'bg-destructive/10 text-destructive'
-                : speaking
-                  ? 'bg-primary text-primary-foreground animate-pulse-ring'
-                  : 'bg-primary/10 text-primary hover:bg-primary/20'
+                : audioPending
+                  ? 'bg-muted text-muted-foreground'
+                  : speaking
+                    ? 'bg-primary text-primary-foreground animate-pulse-ring'
+                    : 'bg-primary/10 text-primary hover:bg-primary/20'
             )}
           >
             {audioError
               ? <AlertCircle className="h-4 w-4" />
-              : speaking
-                ? <Pause className="h-4 w-4" />
-                : <Volume2 className="h-4 w-4" />
+              : audioPending
+                ? <Loader2 className="h-4 w-4 animate-spin" />
+                : speaking
+                  ? <Pause className="h-4 w-4" />
+                  : <Volume2 className="h-4 w-4" />
             }
           </button>
-          <button
-            onClick={handleStar}
-            aria-label={starred ? 'Remove from favourites' : 'Add to favourites'}
-            className={cn(
-              'w-9 h-9 rounded-full flex items-center justify-center transition-colors duration-200 active:scale-90',
-              starred ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-muted',
-              starAnimating && 'animate-star-pop'
+
+          {/* Folder button */}
+          <div className="relative">
+            <button
+              onClick={() => setPopoverOpen((v) => !v)}
+              aria-label="Save to folder"
+              className={cn(
+                'w-9 h-9 rounded-full flex items-center justify-center transition-colors duration-200 active:scale-90',
+                inAnyFolder ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-muted'
+              )}
+            >
+              {inAnyFolder
+                ? <BookmarkCheck className="h-4 w-4 fill-primary" />
+                : <Bookmark className="h-4 w-4" />
+              }
+            </button>
+            {popoverOpen && (
+              <FolderPopover
+                wordId={word.id}
+                onClose={() => setPopoverOpen(false)}
+              />
             )}
-          >
-            <Star className={cn('h-4 w-4', starred && 'fill-primary')} />
-          </button>
+          </div>
+
+          {/* Delete button (custom words only) */}
           {onRemove && word.isCustom && (
             <button
               onClick={() => setConfirming(true)}
@@ -133,13 +167,6 @@ export default function WordCard({ word, onRemove }) {
         <p className="text-base font-semibold text-foreground">{word.english}</p>
         <p className="text-base text-muted-foreground">{word.chinese}</p>
       </div>
-
-      {/* Example sentence */}
-      {word.example && (
-        <p className="text-xs text-muted-foreground border-t border-primary/15 pt-3 italic leading-relaxed">
-          {word.example}
-        </p>
-      )}
 
       {/* Delete confirmation */}
       {confirming && (
