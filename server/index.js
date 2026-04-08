@@ -185,6 +185,73 @@ app.post('/api/custom-word', async (req, res) => {
   }
 })
 
+// ─── POST /api/explore — AI vocabulary generation ────────────────────────────
+
+app.post('/api/explore', async (req, res) => {
+  const { categoryId, categoryLabel, existingWords = [] } = req.body
+
+  if (!categoryId || !categoryLabel) {
+    return res.status(400).json({ error: 'Missing required fields: categoryId, categoryLabel.' })
+  }
+  if (typeof categoryId !== 'string' || categoryId.length > 50) {
+    return res.status(400).json({ error: 'Invalid categoryId.' })
+  }
+
+  const existingHint =
+    Array.isArray(existingWords) && existingWords.length > 0
+      ? `\n\nAvoid these words already in the library: ${existingWords.slice(0, 50).join(', ')}`
+      : ''
+
+  const prompt = `You are a French language teacher. Generate exactly 10 unique French words or short phrases for the category "${categoryLabel}" (${categoryId}).${existingHint}
+
+Return ONLY valid JSON with no markdown or explanation:
+{"words":[{"french":"...","english":"...","chinese":"...","phonetic":"...","example":"..."},…]}
+
+Rules:
+- french: the French word or phrase with article if noun (e.g. "le pain")
+- english: concise English translation
+- chinese: Traditional Chinese translation
+- phonetic: English phonetic pronunciation guide, uppercase stressed syllable (e.g. "luh PAN")
+- example: one short natural French sentence using this word
+- All 10 words must be different and varied across the category
+- Prefer common, everyday vocabulary appropriate for learners`
+
+  try {
+    const message = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }],
+    })
+
+    const raw   = message.content?.[0]?.text?.trim() ?? ''
+    const match = raw.match(/\{[\s\S]*\}/)
+    if (!match) return res.status(500).json({ error: 'Could not parse model response as JSON.' })
+
+    const parsed = JSON.parse(match[0])
+    if (!Array.isArray(parsed.words) || parsed.words.length === 0) {
+      return res.status(500).json({ error: 'Invalid response format.' })
+    }
+
+    const now = Date.now()
+    const words = parsed.words.slice(0, 10).map((w, i) => ({
+      id:           `custom_${now + i}`,
+      french:       String(w.french       ?? '').slice(0, 200),
+      english:      String(w.english      ?? '').slice(0, 200),
+      chinese:      String(w.chinese      ?? '').slice(0, 200),
+      phonetic:     String(w.phonetic     ?? '').slice(0, 200),
+      example:      String(w.example      ?? '').slice(0, 500),
+      category:     categoryId,
+      isCustom:     true,
+      audioPath:    null,
+    }))
+
+    return res.json({ words })
+  } catch (err) {
+    console.error('[/api/explore]', err.message)
+    return res.status(500).json({ error: 'Failed to generate vocabulary.' })
+  }
+})
+
 // ─── Serve Vite build (production) ───────────────────────────────────────────
 
 const distPath = join(__dirname, '..', 'dist')
