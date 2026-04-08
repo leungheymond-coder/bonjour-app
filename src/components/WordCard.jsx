@@ -1,26 +1,34 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Volume2, Pause, Bookmark, BookmarkCheck, AlertCircle, Trash2, Loader2 } from 'lucide-react'
+import { Volume2, Pause, Bookmark, BookmarkCheck, AlertCircle, MoreHorizontal, Pencil, Trash2, Loader2 } from 'lucide-react'
 import { useCollections } from '@/hooks/useCollections'
+import { useCustomVocab } from '@/hooks/useCustomVocab'
+import { useWordCustomizations } from '@/hooks/useWordCustomizations'
 import { cn } from '@/lib/utils'
 import FolderPopover from '@/components/FolderPopover'
+import WordEditSheet from '@/components/WordEditSheet'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
 // Global: only one WordCard plays at a time
 let globalStop = null
 
-export default function WordCard({ word, onRemove }) {
+export default function WordCard({ word }) {
   const { isInAnyFolder, removeWordFromAll } = useCollections()
+  const { removeWord }  = useCustomVocab()
+  const { hideWord }    = useWordCustomizations()
+
   const [speaking, setSpeaking]       = useState(false)
   const [audioError, setAudioError]   = useState(false)
   const [popoverOpen, setPopoverOpen] = useState(false)
-  const [confirming, setConfirming]   = useState(false)
+  const [menuOpen, setMenuOpen]       = useState(false)
+  const [editOpen, setEditOpen]       = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
   const inAnyFolder = isInAnyFolder(word.id)
   const audioRef    = useRef(null)
 
   // audioPath === null means audio is still being generated
   const audioPending = word.isCustom && word.audioPath === null
 
-  // cancelSpeakRef stores the latest cancelSpeak function so async callbacks
-  // can compare against globalStop without self-referencing inside useCallback
   const cancelSpeakRef = useRef(null)
 
   const cancelSpeak = useCallback(() => {
@@ -33,7 +41,6 @@ export default function WordCard({ word, onRemove }) {
     if (globalStop === cancelSpeakRef.current) globalStop = null
   }, [])
 
-  // Sync ref after each render (never during render)
   useEffect(() => {
     cancelSpeakRef.current = cancelSpeak
   })
@@ -71,9 +78,14 @@ export default function WordCard({ word, onRemove }) {
     })
   }, [word.id, word.audioPath, audioPending, speaking, cancelSpeak])
 
-  function handleConfirmDelete() {
+  function handleDelete() {
+    if (word.isCustom) {
+      removeWord(word.id)
+    } else {
+      hideWord(word.id)
+    }
     removeWordFromAll(word.id)
-    onRemove(word.id)
+    setConfirmOpen(false)
   }
 
   return (
@@ -81,7 +93,6 @@ export default function WordCard({ word, onRemove }) {
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          {/* Content type pill */}
           <span className={cn(
             'inline-block text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded mb-1',
             word.contentType === 'sentence'
@@ -129,7 +140,7 @@ export default function WordCard({ word, onRemove }) {
           {/* Folder button */}
           <div className="relative">
             <button
-              onClick={() => setPopoverOpen((v) => !v)}
+              onClick={() => { setMenuOpen(false); setPopoverOpen((v) => !v) }}
               aria-label="Save to folder"
               className={cn(
                 'w-9 h-9 rounded-full flex items-center justify-center transition-colors duration-200 active:scale-90',
@@ -149,16 +160,43 @@ export default function WordCard({ word, onRemove }) {
             )}
           </div>
 
-          {/* Delete button (custom words only) */}
-          {onRemove && word.isCustom && (
+          {/* "…" more button */}
+          <div className="relative">
             <button
-              onClick={() => setConfirming(true)}
-              aria-label="Delete word"
-              className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors duration-200 active:scale-90"
+              onClick={() => { setPopoverOpen(false); setMenuOpen((v) => !v) }}
+              aria-label="More options"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors active:scale-90"
             >
-              <Trash2 className="h-4 w-4" />
+              <MoreHorizontal className="h-4 w-4" />
             </button>
-          )}
+
+            {menuOpen && (
+              <>
+                {/* Transparent backdrop to close menu on outside click */}
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setMenuOpen(false)}
+                  aria-hidden="true"
+                />
+                <div className="absolute right-0 top-full mt-1 z-50 bg-background border border-border rounded-xl shadow-lg p-1 min-w-[130px]">
+                  <button
+                    onClick={() => { setMenuOpen(false); setEditOpen(true) }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted transition-colors"
+                  >
+                    <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => { setMenuOpen(false); setConfirmOpen(true) }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Delete
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -168,25 +206,24 @@ export default function WordCard({ word, onRemove }) {
         <p className="text-base text-muted-foreground">{word.chinese}</p>
       </div>
 
+      {/* Edit sheet — key={word.id} prevents stale state */}
+      {editOpen && (
+        <WordEditSheet key={word.id} word={word} onClose={() => setEditOpen(false)} />
+      )}
+
       {/* Delete confirmation */}
-      {confirming && (
-        <div className="flex items-center justify-between border-t border-destructive/20 pt-3 gap-2">
-          <p className="text-xs text-destructive font-medium">Delete this word?</p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setConfirming(false)}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-muted text-muted-foreground hover:bg-border transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleConfirmDelete}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
-            >
-              Delete
-            </button>
-          </div>
-        </div>
+      {confirmOpen && (
+        <ConfirmDialog
+          title={`Delete "${word.french}"?`}
+          message={
+            word.isCustom
+              ? 'This word will be removed from your library and all collections.'
+              : 'This built-in word will be hidden from your library and collections.'
+          }
+          confirmLabel="Delete"
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmOpen(false)}
+        />
       )}
     </div>
   )

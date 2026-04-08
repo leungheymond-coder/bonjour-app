@@ -13,7 +13,7 @@ const TYPE_FILTERS    = [
 ]
 
 export default function LibraryPage() {
-  const { customWords, removeWord } = useCustomVocab()
+  const { customWords } = useCustomVocab()
   const [typeFilter, setTypeFilter]         = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [sheetOpen, setSheetOpen]           = useState(false)
@@ -129,10 +129,7 @@ export default function LibraryPage() {
               className="animate-fade-up"
               style={{ animationDelay: `${Math.min(i, 10) * 40}ms` }}
             >
-              <WordCard
-                word={word}
-                onRemove={word.isCustom ? removeWord : undefined}
-              />
+              <WordCard word={word} />
             </div>
           ))
         )}
