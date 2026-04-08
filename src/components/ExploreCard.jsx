@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Volume2, Pause, Plus, Check, Loader2, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -15,10 +15,12 @@ export default function ExploreCard({ word, categoryColor, onAdd, isAdded }) {
   const [addError, setAddError]             = useState(false)
   const audioRef = useRef(null)
   const abortRef = useRef(null)
+  const blobUrlRef = useRef(null)
 
   const cancelPreview = useCallback(() => {
     if (abortRef.current)  { abortRef.current.abort(); abortRef.current = null }
     if (audioRef.current)  { audioRef.current.pause(); audioRef.current = null }
+    if (blobUrlRef.current) { URL.revokeObjectURL(blobUrlRef.current); blobUrlRef.current = null }
     setPreviewing(false)
     setPreviewLoading(false)
     if (globalStop === cancelPreview) globalStop = null
@@ -49,7 +51,8 @@ export default function ExploreCard({ word, categoryColor, onAdd, isAdded }) {
       const blob = await res.blob()
       if (controller.signal.aborted) return
 
-      const url   = URL.createObjectURL(blob)
+      const url = URL.createObjectURL(blob)
+      blobUrlRef.current = url
       const audio = new Audio(url)
       audioRef.current = audio
       setPreviewLoading(false)
@@ -57,12 +60,14 @@ export default function ExploreCard({ word, categoryColor, onAdd, isAdded }) {
 
       audio.onended = () => {
         audioRef.current = null
+        blobUrlRef.current = null
         setPreviewing(false)
         URL.revokeObjectURL(url)
         if (globalStop === cancelPreview) globalStop = null
       }
       audio.onerror = () => {
         audioRef.current = null
+        blobUrlRef.current = null
         setPreviewing(false)
         setPreviewError(true)
         URL.revokeObjectURL(url)
@@ -71,6 +76,7 @@ export default function ExploreCard({ word, categoryColor, onAdd, isAdded }) {
       }
       audio.play().catch(() => {
         audioRef.current = null
+        blobUrlRef.current = null
         setPreviewing(false)
         setPreviewLoading(false)
         setPreviewError(true)
@@ -87,7 +93,9 @@ export default function ExploreCard({ word, categoryColor, onAdd, isAdded }) {
     }
   }, [word.french, previewing, previewLoading, cancelPreview])
 
-  async function handleAdd() {
+  useEffect(() => () => cancelPreview(), [cancelPreview])
+
+  const handleAdd = useCallback(async () => {
     if (isAdded || adding) return
     setAdding(true)
     setAddError(false)
@@ -99,7 +107,7 @@ export default function ExploreCard({ word, categoryColor, onAdd, isAdded }) {
     } finally {
       setAdding(false)
     }
-  }
+  }, [isAdded, adding, onAdd, word])
 
   return (
     <div
@@ -165,7 +173,12 @@ export default function ExploreCard({ word, categoryColor, onAdd, isAdded }) {
             Added
           </span>
         ) : addError ? (
-          <span className="text-xs text-destructive font-medium py-1.5">Failed — tap to retry</span>
+          <button
+            onClick={handleAdd}
+            className="text-xs text-destructive font-medium py-1.5 active:scale-95 transition-transform"
+          >
+            Failed — tap to retry
+          </button>
         ) : (
           <button
             onClick={handleAdd}
