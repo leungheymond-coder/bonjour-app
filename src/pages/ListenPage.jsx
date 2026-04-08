@@ -358,6 +358,9 @@ export default function ListenPage() {
   }
 
   useEffect(() => {
+    // Runs once on mount to pick the initial word. customWords here is the
+    // localStorage-hydrated initial value, which is correct. Subsequent pool
+    // changes are handled by handleCategoryChange and handleNext.
     const pool = computePool('all', [], customWords)
     startRound(pickRandom(pool), 1)
     return () => cancelAudio()
