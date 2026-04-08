@@ -1,7 +1,8 @@
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 export default function ConfirmDialog({ title, message, confirmLabel = 'Delete', onConfirm, onCancel }) {
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
@@ -36,6 +37,7 @@ export default function ConfirmDialog({ title, message, confirmLabel = 'Delete',
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

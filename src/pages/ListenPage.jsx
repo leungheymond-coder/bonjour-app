@@ -563,49 +563,48 @@ export default function ListenPage() {
               {/* Revealed card */}
               {content && answered && (
                 <div className="w-full card-frosted p-5 flex flex-col gap-3 animate-fade-up">
-                  {level === 3 ? (
-                    <SentencePlayer
-                      sentences={splitSentences(content.french)}
-                      speed={speed}
-                      speakFrench={speakFrench}
-                      cancelAudio={cancelAudio}
-                      onTakeoverAudio={() => { setPlaying(false); setPaused(false) }}
-                      registerCancel={(fn) => { sentenceResetRef.current = fn }}
-                    />
-                  ) : (
-                    <p
-                      className="text-xl font-bold text-foreground leading-snug font-heading [&_strong]:text-primary"
-                      dangerouslySetInnerHTML={{ __html: content.french }}
-                    />
-                  )}
-                  {content.phonetic && (
-                    <p className="text-sm text-muted-foreground -mt-2 tracking-wide">
-                      {content.phonetic}
-                    </p>
-                  )}
-                  <div className="border-t border-primary/15 pt-3 flex flex-col gap-1.5">
-                    <p className="text-base font-semibold text-foreground">{content.english}</p>
-                    <p className="text-base text-muted-foreground">{content.chinese}</p>
-                  </div>
-                  {/* Save button */}
-                  {word && (
-                    <div className="flex justify-end border-t border-border/30 pt-2 -mb-1">
-                      <div className="relative">
+                  {/* French content + bookmark in top-right */}
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                      {level === 3 ? (
+                        <SentencePlayer
+                          sentences={splitSentences(content.french)}
+                          speed={speed}
+                          speakFrench={speakFrench}
+                          cancelAudio={cancelAudio}
+                          onTakeoverAudio={() => { setPlaying(false); setPaused(false) }}
+                          registerCancel={(fn) => { sentenceResetRef.current = fn }}
+                        />
+                      ) : (
+                        <p
+                          className="text-xl font-bold text-foreground leading-snug font-heading [&_strong]:text-primary"
+                          dangerouslySetInnerHTML={{ __html: content.french }}
+                        />
+                      )}
+                      {content.phonetic && (
+                        <p className="text-sm text-muted-foreground mt-1 tracking-wide">
+                          {content.phonetic}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Bookmark button */}
+                    {word && (
+                      <div className="relative shrink-0">
                         <button
                           onClick={() => setSavePopoverOpen((v) => !v)}
                           aria-label="Save to folder"
                           className={cn(
-                            'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors',
+                            'w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 active:scale-90',
                             isInAnyFolder(word.id)
-                              ? 'border-primary bg-primary/10 text-primary'
-                              : 'border-border text-muted-foreground hover:bg-muted'
+                              ? 'text-primary bg-primary/10'
+                              : 'text-muted-foreground hover:bg-muted'
                           )}
                         >
                           {isInAnyFolder(word.id)
-                            ? <BookmarkCheck className="h-3.5 w-3.5 fill-primary" />
-                            : <Bookmark className="h-3.5 w-3.5" />
+                            ? <BookmarkCheck className="h-5 w-5 fill-primary" />
+                            : <Bookmark className="h-5 w-5" />
                           }
-                          {isInAnyFolder(word.id) ? 'Saved' : 'Save'}
                         </button>
                         {savePopoverOpen && (
                           <FolderPopover
@@ -614,8 +613,13 @@ export default function ListenPage() {
                           />
                         )}
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+
+                  <div className="border-t border-primary/15 pt-3 flex flex-col gap-1.5">
+                    <p className="text-base font-semibold text-foreground">{content.english}</p>
+                    <p className="text-base text-muted-foreground">{content.chinese}</p>
+                  </div>
                 </div>
               )}
 

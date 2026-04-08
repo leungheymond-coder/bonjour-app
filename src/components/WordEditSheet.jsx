@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { categories } from '@/data/vocabulary'
 import { useCustomVocab } from '@/hooks/useCustomVocab'
@@ -39,7 +40,7 @@ export default function WordEditSheet({ word, onClose }) {
     onClose()
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[60] flex flex-col justify-end">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
@@ -164,6 +165,7 @@ export default function WordEditSheet({ word, onClose }) {
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

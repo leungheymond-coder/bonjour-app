@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Sparkles, Loader2, ChevronLeft, PenLine, Wand2 } from 'lucide-react'
 import { categories, vocabulary } from '@/data/vocabulary'
 import { useCustomVocab } from '@/hooks/useCustomVocab'
@@ -209,7 +210,7 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[60] flex flex-col justify-end">
       {/* Backdrop */}
       <div
@@ -392,6 +393,7 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
