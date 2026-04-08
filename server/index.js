@@ -269,7 +269,7 @@ Rules:
       french:      String(w.french  ?? '').slice(0, 300),
       english:     String(w.english ?? '').slice(0, 200),
       chinese:     String(w.chinese ?? '').slice(0, 200),
-      category:    categoryId,
+      category:    safeId,
       contentType: type,
       isCustom:    true,
       audioPath:   null,
