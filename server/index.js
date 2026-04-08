@@ -137,13 +137,11 @@ app.post('/api/enrich', async (req, res) => {
   const prompt = `You are a French language teacher. Given this French word or phrase: "${french}"
 
 Return ONLY valid JSON with no markdown or explanation:
-{"phonetic":"...","english":"...","chinese":"...","example":"..."}
+{"english":"...","chinese":"..."}
 
 Rules:
-- phonetic: English phonetic pronunciation guide (e.g. "bon-ZHOOR", uppercase stressed syllable)
 - english: concise English translation
-- chinese: Traditional Chinese translation
-- example: one short, natural French sentence using this word/phrase`
+- chinese: Traditional Chinese translation`
 
   try {
     const message = await anthropic.messages.create({
@@ -196,10 +194,10 @@ app.post('/api/custom-word', async (req, res) => {
   }
 })
 
-// ─── POST /api/explore — AI vocabulary generation ────────────────────────────
+// ─── POST /api/explore — AI vocabulary/sentence generation ──────────────────
 
 app.post('/api/explore', async (req, res) => {
-  const { categoryId, categoryLabel, existingWords = [] } = req.body
+  const { categoryId, categoryLabel, existingWords = [], type = 'vocab', count = 5 } = req.body
 
   if (!categoryId || !categoryLabel) {
     return res.status(400).json({ error: 'Missing required fields: categoryId, categoryLabel.' })
@@ -210,38 +208,44 @@ app.post('/api/explore', async (req, res) => {
   if (typeof categoryLabel !== 'string' || categoryLabel.length > 100) {
     return res.status(400).json({ error: 'Invalid categoryLabel.' })
   }
+  if (!['vocab', 'sentence'].includes(type)) {
+    return res.status(400).json({ error: 'Invalid type. Must be "vocab" or "sentence".' })
+  }
+  const safeCount = Math.min(Math.max(parseInt(count, 10) || 5, 1), 10)
 
   const safeExisting = Array.isArray(existingWords)
     ? existingWords
         .filter((w) => typeof w === 'string')
-        .slice(0, 50)
+        .slice(0, 100)
         .map((w) => w.slice(0, 100).replace(/"/g, '\u2019'))
     : []
   const existingHint = safeExisting.length > 0
-    ? `\n\nAvoid these words already in the library: ${safeExisting.join(', ')}`
+    ? `\n\nAvoid these already in the library: ${safeExisting.join(', ')}`
     : ''
 
   const safeLabel = categoryLabel.replace(/"/g, '\u2019')
   const safeId    = categoryId.replace(/[^a-zA-Z0-9_\-]/g, '')
 
-  const prompt = `You are a French language teacher. Generate exactly 10 unique French words or short phrases for the category "${safeLabel}" (${safeId}).${existingHint}
+  const typeInstruction = type === 'sentence'
+    ? `Generate exactly ${safeCount} unique, natural French sentences related to the category "${safeLabel}" (${safeId}). Each sentence should be a complete, everyday sentence a learner would find useful.`
+    : `Generate exactly ${safeCount} unique French words or short phrases for the category "${safeLabel}" (${safeId}). Include article if noun (e.g. "le pain").`
+
+  const prompt = `You are a French language teacher. ${typeInstruction}${existingHint}
 
 Return ONLY valid JSON with no markdown or explanation:
-{"words":[{"french":"...","english":"...","chinese":"...","phonetic":"...","example":"..."},…]}
+{"words":[{"french":"...","english":"...","chinese":"..."},…]}
 
 Rules:
-- french: the French word or phrase with article if noun (e.g. "le pain")
+- french: ${type === 'sentence' ? 'a complete natural French sentence' : 'the French word or phrase with article if noun'}
 - english: concise English translation
 - chinese: Traditional Chinese translation
-- phonetic: English phonetic pronunciation guide, uppercase stressed syllable (e.g. "luh PAN")
-- example: one short natural French sentence using this word
-- All 10 words must be different and varied across the category
-- Prefer common, everyday vocabulary appropriate for learners`
+- All ${safeCount} items must be different
+- Prefer common, everyday ${type === 'sentence' ? 'sentences' : 'vocabulary'} appropriate for learners`
 
   try {
     const message = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 2000,
+      max_tokens: 1200,
       messages: [{ role: 'user', content: prompt }],
     })
 
@@ -260,16 +264,15 @@ Rules:
     }
 
     const now = Date.now()
-    const words = parsed.words.slice(0, 10).map((w, i) => ({
-      id:           `custom_${now + i}`,
-      french:       String(w.french       ?? '').slice(0, 200),
-      english:      String(w.english      ?? '').slice(0, 200),
-      chinese:      String(w.chinese      ?? '').slice(0, 200),
-      phonetic:     String(w.phonetic     ?? '').slice(0, 200),
-      example:      String(w.example      ?? '').slice(0, 500),
-      category:     categoryId,
-      isCustom:     true,
-      audioPath:    null,
+    const words = parsed.words.slice(0, safeCount).map((w, i) => ({
+      id:          `custom_${now + i}`,
+      french:      String(w.french  ?? '').slice(0, 300),
+      english:     String(w.english ?? '').slice(0, 200),
+      chinese:     String(w.chinese ?? '').slice(0, 200),
+      category:    categoryId,
+      contentType: type,
+      isCustom:    true,
+      audioPath:   null,
     }))
 
     return res.json({ words })
