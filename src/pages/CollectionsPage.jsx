@@ -54,9 +54,9 @@ function FolderDetail({ folder, allWords, onBack }) {
   )
 }
 
-function FolderCard({ folder, wordCount, onOpen, onRename, onDelete }) {
-  const [editing, setEditing]   = useState(false)
-  const [nameVal, setNameVal]   = useState(folder.name ?? '')
+function FolderCard({ folder, wordCount, onOpen, onRename, onDelete, initialEditing = false }) {
+  const [editing, setEditing]   = useState(initialEditing)
+  const [nameVal, setNameVal]   = useState(initialEditing ? '' : (folder.name ?? ''))
 
   function handleSave() {
     if (nameVal.trim()) { onRename(nameVal.trim()); setEditing(false) }
@@ -117,7 +117,8 @@ function FolderCard({ folder, wordCount, onOpen, onRename, onDelete }) {
 export default function CollectionsPage() {
   const { customWords } = useCustomVocab()
   const { collections, activeFolders, setFolderName, deleteFolder } = useCollections()
-  const [openFolder, setOpenFolder] = useState(null)
+  const [openFolder, setOpenFolder]   = useState(null)
+  const [newFolderId, setNewFolderId] = useState(null)
 
   const allWords = [...vocabulary, ...customWords]
 
@@ -155,14 +156,15 @@ export default function CollectionsPage() {
             folder={folder}
             wordCount={folder.ids.length}
             onOpen={() => setOpenFolder(folder.id)}
-            onRename={(name) => setFolderName(folder.id, name)}
+            onRename={(name) => { setFolderName(folder.id, name); setNewFolderId(null) }}
             onDelete={() => deleteFolder(folder.id)}
+            initialEditing={folder.id === newFolderId}
           />
         ))}
 
         {emptySlot && (
           <button
-            onClick={() => setFolderName(emptySlot, 'New Folder')}
+            onClick={() => { setFolderName(emptySlot, 'New Folder'); setNewFolderId(emptySlot) }}
             className="card-frosted p-4 flex items-center gap-3 text-muted-foreground hover:text-foreground transition-colors active:scale-[0.98]"
           >
             <FolderPlus className="h-5 w-5" />

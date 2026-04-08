@@ -135,9 +135,11 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
       const now = Date.now()
       const words = data.words.map((w, i) => ({
         ...w,
-        addedAt: now + i,
-        type: 'word',
-        isCustom: true,
+        category:    categoryId,
+        contentType: contentType,
+        addedAt:     now + i,
+        type:        'word',
+        isCustom:    true,
       }))
 
       // Immediately add all 5 to library (audioPath: null — shown as pending)
@@ -208,7 +210,7 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end">
+    <div className="fixed inset-0 z-[60] flex flex-col justify-end">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"

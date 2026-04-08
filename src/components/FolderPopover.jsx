@@ -23,7 +23,7 @@ export default function FolderPopover({ wordId, onClose }) {
   function handleToggle(folderId) {
     toggleInFolder(folderId, wordId)
     // Close after short delay so user sees the checkbox update
-    setTimeout(onClose, 1500)
+    setTimeout(onClose, 2500)
   }
 
   if (activeFolders.length === 0) return null
