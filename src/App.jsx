@@ -1,9 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import BottomNav from '@/components/BottomNav'
-import Categories from '@/pages/CategoryPage'
-import Listen from '@/pages/ListenPage'
-import Favourites from '@/pages/FavouritesPage'
-import ExplorePage from '@/pages/ExplorePage'
+import LibraryPage from '@/pages/LibraryPage'
+import ListenPage from '@/pages/ListenPage'
+import CollectionsPage from '@/pages/CollectionsPage'
 
 export default function App() {
   return (
@@ -14,11 +13,10 @@ export default function App() {
         <div className="blob-3" />
         <main className="relative z-10 flex-1 pb-16">
           <Routes>
-            <Route path="/" element={<Navigate to="/categories" replace />} />
-            <Route path="/categories" element={<Categories />} />
-            <Route path="/listen" element={<Listen />} />
-            <Route path="/explore"    element={<ExplorePage />} />
-            <Route path="/favourites" element={<Favourites />} />
+            <Route path="/"            element={<LibraryPage />} />
+            <Route path="/listen"      element={<ListenPage />} />
+            <Route path="/collections" element={<CollectionsPage />} />
+            <Route path="*"            element={<Navigate to="/" replace />} />
           </Routes>
         </main>
         <BottomNav />
