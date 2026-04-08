@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Volume2, Pause, RotateCcw, ChevronDown, Loader2 } from 'lucide-react'
 import { vocabulary, categories } from '@/data/vocabulary'
 import { useFavourites } from '@/hooks/useFavourites'
+import { useCustomVocab } from '@/hooks/useCustomVocab'
 import { cn } from '@/lib/utils'
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -10,10 +11,11 @@ const API_URL = import.meta.env.VITE_API_URL ?? ''
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function computePool(categoryId, favouriteIds) {
-  if (categoryId === 'favourites') return vocabulary.filter((w) => favouriteIds.includes(w.id))
-  if (categoryId === 'all') return vocabulary
-  return vocabulary.filter((w) => w.category === categoryId)
+function computePool(categoryId, favouriteIds, customWords) {
+  const all = [...vocabulary, ...customWords]
+  if (categoryId === 'favourites') return all.filter((w) => favouriteIds.includes(w.id))
+  if (categoryId === 'all') return all
+  return all.filter((w) => w.category === categoryId)
 }
 
 function pickRandom(pool, excludeId = null) {
@@ -227,6 +229,7 @@ function SentencePlayer({ sentences, speed, speakFrench, cancelAudio, onTakeover
 
 export default function ListenPage() {
   const { favourites } = useFavourites()
+  const { customWords } = useCustomVocab()
 
   const [level, setLevel] = useState(1)
   const [category, setCategory] = useState('all')
@@ -255,11 +258,11 @@ export default function ListenPage() {
     setTtsLoading(false)
   }
 
-  function speakStatic(wordId, rate, onStart, onEnd) {
+  function speakStatic(audioPath, rate, onStart, onEnd) {
     cancelAudio()
     setError(null)
 
-    const audio = new Audio(`/audio/${wordId}.mp3`)
+    const audio = new Audio(audioPath)
     audio.playbackRate = rate
     audioRef.current = audio
 
@@ -355,7 +358,7 @@ export default function ListenPage() {
   }
 
   useEffect(() => {
-    const pool = computePool('all', [])
+    const pool = computePool('all', [], customWords)
     startRound(pickRandom(pool), 1)
     return () => cancelAudio()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -368,12 +371,12 @@ export default function ListenPage() {
 
   function handleCategoryChange(newCat) {
     setCategory(newCat)
-    const pool = computePool(newCat, favourites)
+    const pool = computePool(newCat, favourites, customWords)
     if (pool.length > 0) startRound(pickRandom(pool), level)
   }
 
   function handleNext() {
-    const pool = computePool(category, favourites)
+    const pool = computePool(category, favourites, customWords)
     if (pool.length === 0) return
     startRound(pickRandom(pool, word?.id), level)
   }
@@ -383,7 +386,7 @@ export default function ListenPage() {
     sentenceResetRef.current?.()
     setPaused(false)
     if (level === 1 && word) {
-      speakStatic(word.id, speed, () => setPlaying(true), () => { setPlaying(false); setPaused(false) })
+      speakStatic(word.audioPath ?? `/audio/${word.id}.mp3`, speed, () => setPlaying(true), () => { setPlaying(false); setPaused(false) })
     } else {
       try {
         await speakFrench(content.french, () => setPlaying(true), () => { setPlaying(false); setPaused(false) }, speed)
@@ -402,7 +405,7 @@ export default function ListenPage() {
     sentenceResetRef.current?.()
     setPaused(false)
     if (level === 1 && word) {
-      speakStatic(word.id, speed, () => setPlaying(true), () => { setPlaying(false); setPaused(false) })
+      speakStatic(word.audioPath ?? `/audio/${word.id}.mp3`, speed, () => setPlaying(true), () => { setPlaying(false); setPaused(false) })
     } else {
       try {
         await speakFrench(content.french, () => setPlaying(true), () => { setPlaying(false); setPaused(false) }, speed)
@@ -416,7 +419,7 @@ export default function ListenPage() {
     if (playing && content) {
       sentenceResetRef.current?.()
       if (level === 1 && word) {
-        speakStatic(word.id, newSpeed, () => setPlaying(true), () => { setPlaying(false); setPaused(false) })
+        speakStatic(word.audioPath ?? `/audio/${word.id}.mp3`, newSpeed, () => setPlaying(true), () => { setPlaying(false); setPaused(false) })
       } else {
         speakFrench(content.french, () => setPlaying(true), () => { setPlaying(false); setPaused(false) }, newSpeed)
           .catch(() => {})
@@ -424,7 +427,7 @@ export default function ListenPage() {
     }
   }
 
-  const pool = computePool(category, favourites)
+  const pool = computePool(category, favourites, customWords)
   const isEmpty = pool.length === 0
   const answered = revealed
 
