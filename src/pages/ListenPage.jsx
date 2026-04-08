@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Volume2, Pause, RotateCcw, ChevronDown, Loader2 } from 'lucide-react'
 import { vocabulary, categories } from '@/data/vocabulary'
-import { useFavourites } from '@/hooks/useFavourites'
+import { useCollections } from '@/hooks/useCollections'
 import { useCustomVocab } from '@/hooks/useCustomVocab'
 import { cn } from '@/lib/utils'
 
@@ -228,7 +228,8 @@ function SentencePlayer({ sentences, speed, speakFrench, cancelAudio, onTakeover
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function ListenPage() {
-  const { favourites } = useFavourites()
+  const { collections } = useCollections()
+  const favourites = collections.favourites.ids
   const { customWords } = useCustomVocab()
 
   const [level, setLevel] = useState(1)
@@ -242,6 +243,7 @@ export default function ListenPage() {
   const [paused, setPaused] = useState(false)
   const [ttsLoading, setTtsLoading] = useState(false)
   const [speed, setSpeed] = useState(1)
+  const [sentenceSource, setSentenceSource] = useState('library') // 'library' | 'ai' | 'both'
 
   const activeToken = useRef(0)
   const audioRef = useRef(null)
@@ -326,7 +328,7 @@ export default function ListenPage() {
     }
   }
 
-  async function startRound(w, lvl, spd = speed) {
+  async function startRound(w, lvl) {
     cancelAudio()
     const token = ++activeToken.current
     setWord(w)
@@ -449,6 +451,33 @@ export default function ListenPage() {
       {/* Controls */}
       <LevelSelector value={level} onChange={handleLevelChange} />
       <CategoryFilter value={category} onChange={handleCategoryChange} />
+
+      {/* Sentence source selector — UI only, session behaviour deferred */}
+      <div className="px-4 pb-3 border-b border-border/30">
+        <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground mb-2">
+          Sentence source
+        </p>
+        <div className="flex gap-2">
+          {[
+            { id: 'library', label: 'Library' },
+            { id: 'ai',      label: 'AI Only' },
+            { id: 'both',    label: 'Both' },
+          ].map((opt) => (
+            <button
+              key={opt.id}
+              onClick={() => setSentenceSource(opt.id)}
+              className={cn(
+                'flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-colors',
+                sentenceSource === opt.id
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border text-muted-foreground hover:bg-muted'
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {isEmpty ? (
         <EmptyState category={category} />
