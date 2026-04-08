@@ -3,6 +3,7 @@ import BottomNav from '@/components/BottomNav'
 import Categories from '@/pages/CategoryPage'
 import Listen from '@/pages/ListenPage'
 import Favourites from '@/pages/FavouritesPage'
+import ExplorePage from '@/pages/ExplorePage'
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
             <Route path="/" element={<Navigate to="/categories" replace />} />
             <Route path="/categories" element={<Categories />} />
             <Route path="/listen" element={<Listen />} />
+            <Route path="/explore"    element={<ExplorePage />} />
             <Route path="/favourites" element={<Favourites />} />
           </Routes>
         </main>
