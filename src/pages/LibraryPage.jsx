@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Plus } from 'lucide-react'
 import { vocabulary, categories } from '@/data/vocabulary'
 import { useCustomVocab } from '@/hooks/useCustomVocab'
+import { useWordCustomizations, applyCustomizations } from '@/hooks/useWordCustomizations'
 import WordCard from '@/components/WordCard'
 import AddSheet from '@/components/AddSheet'
 import { cn } from '@/lib/utils'
@@ -14,13 +15,14 @@ const TYPE_FILTERS    = [
 
 export default function LibraryPage() {
   const { customWords } = useCustomVocab()
+  const { customizations } = useWordCustomizations()
   const [typeFilter, setTypeFilter]         = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [sheetOpen, setSheetOpen]           = useState(false)
 
   const allWords = useMemo(
-    () => [...vocabulary, ...customWords],
-    [customWords]
+    () => applyCustomizations([...vocabulary, ...customWords], customizations),
+    [customWords, customizations]
   )
 
   const visibleWords = useMemo(() => {
