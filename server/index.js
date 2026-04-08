@@ -196,11 +196,16 @@ app.post('/api/explore', async (req, res) => {
   if (typeof categoryId !== 'string' || categoryId.length > 50) {
     return res.status(400).json({ error: 'Invalid categoryId.' })
   }
+  if (typeof categoryLabel !== 'string' || categoryLabel.length > 100) {
+    return res.status(400).json({ error: 'Invalid categoryLabel.' })
+  }
 
-  const existingHint =
-    Array.isArray(existingWords) && existingWords.length > 0
-      ? `\n\nAvoid these words already in the library: ${existingWords.slice(0, 50).join(', ')}`
-      : ''
+  const safeExisting = Array.isArray(existingWords)
+    ? existingWords.filter((w) => typeof w === 'string').slice(0, 50).map((w) => w.slice(0, 100))
+    : []
+  const existingHint = safeExisting.length > 0
+    ? `\n\nAvoid these words already in the library: ${safeExisting.join(', ')}`
+    : ''
 
   const prompt = `You are a French language teacher. Generate exactly 10 unique French words or short phrases for the category "${categoryLabel}" (${categoryId}).${existingHint}
 
@@ -227,7 +232,12 @@ Rules:
     const match = raw.match(/\{[\s\S]*\}/)
     if (!match) return res.status(500).json({ error: 'Could not parse model response as JSON.' })
 
-    const parsed = JSON.parse(match[0])
+    let parsed
+    try {
+      parsed = JSON.parse(match[0])
+    } catch {
+      return res.status(500).json({ error: 'Could not parse model response as JSON.' })
+    }
     if (!Array.isArray(parsed.words) || parsed.words.length === 0) {
       return res.status(500).json({ error: 'Invalid response format.' })
     }
