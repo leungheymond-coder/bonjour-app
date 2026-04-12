@@ -3,6 +3,7 @@ import BottomNav from '@/components/BottomNav'
 import LibraryPage from '@/pages/LibraryPage'
 import ListenPage from '@/pages/ListenPage'
 import CollectionsPage from '@/pages/CollectionsPage'
+import PracticePage from '@/pages/PracticePage'
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
             <Route path="/"            element={<LibraryPage />} />
             <Route path="/listen"      element={<ListenPage />} />
             <Route path="/collections" element={<CollectionsPage />} />
+            <Route path="/practice"    element={<PracticePage />} />
             <Route path="*"            element={<Navigate to="/" replace />} />
           </Routes>
         </main>

@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { BookOpen, Headphones, Folders } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -9,6 +9,9 @@ const navItems = [
 ]
 
 export default function BottomNav() {
+  const { pathname } = useLocation()
+  if (pathname === '/practice') return null
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-6">
