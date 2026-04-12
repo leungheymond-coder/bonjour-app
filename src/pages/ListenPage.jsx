@@ -30,7 +30,7 @@ function buildQueue(selectedGroupIds, selectedType, collections, customWords, cu
   }
 
   const filtered =
-    selectedType === 'all' ? pool : pool.filter((w) => w.type === selectedType)
+    selectedType === 'all' ? pool : pool.filter((w) => w.contentType === selectedType)
 
   // Fisher-Yates shuffle
   const arr = [...filtered]
@@ -44,9 +44,9 @@ function buildQueue(selectedGroupIds, selectedType, collections, customWords, cu
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 const TYPE_OPTIONS = [
-  { id: 'all',    label: 'All'     },
-  { id: 'word',   label: 'Words'   },
-  { id: 'phrase', label: 'Sentences' },
+  { id: 'all',      label: 'All'       },
+  { id: 'vocab',    label: 'Vocab'     },
+  { id: 'sentence', label: 'Sentences' },
 ]
 
 export default function ListenPage() {
@@ -99,88 +99,94 @@ export default function ListenPage() {
   ]
 
   return (
-    <div className="flex flex-col gap-1 p-4 pb-6">
-      {/* Header */}
-      <div className="mb-2">
-        <h1 className="text-2xl font-bold text-foreground font-heading">Practice</h1>
+    <div className="flex flex-col">
+      {/* Scrollable content */}
+      <div className="flex flex-col gap-1 p-4 pb-4">
+        {/* Header */}
+        <div className="mb-2">
+          <h1 className="text-2xl font-bold text-foreground font-heading">Practice</h1>
+        </div>
+
+        {/* Type filter */}
+        <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground mb-1.5">
+          Type
+        </p>
+        <div className="flex gap-2 mb-3">
+          {TYPE_OPTIONS.map((opt) => (
+            <button
+              key={opt.id}
+              onClick={() => setSelectedType(opt.id)}
+              className={cn(
+                'px-4 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200',
+                selectedType === opt.id
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-card text-muted-foreground border-border hover:opacity-80'
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Folders */}
+        <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground mb-1.5">
+          Folders
+        </p>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {specialGroups.map((g) => (
+            <button
+              key={g.id}
+              onClick={() => toggleGroup(g.id)}
+              className={cn(
+                'px-4 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200',
+                selectedGroups.has(g.id)
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-card text-muted-foreground border-border hover:opacity-80'
+              )}
+            >
+              {selectedGroups.has(g.id) ? `✓ ${g.label}` : g.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Categories */}
+        <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground mb-1.5">
+          Categories
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => toggleGroup(cat.id)}
+              className={cn(
+                'px-4 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200',
+                selectedGroups.has(cat.id)
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-card text-muted-foreground border-border hover:opacity-80'
+              )}
+            >
+              {selectedGroups.has(cat.id)
+                ? `✓ ${cat.emoji} ${cat.label}`
+                : `${cat.emoji} ${cat.label}`}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Type filter */}
-      <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground mb-1.5">
-        Type
-      </p>
-      <div className="flex gap-2 mb-3">
-        {TYPE_OPTIONS.map((opt) => (
-          <button
-            key={opt.id}
-            onClick={() => setSelectedType(opt.id)}
-            className={cn(
-              'px-4 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200',
-              selectedType === opt.id
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'bg-card text-muted-foreground border-border hover:opacity-80'
-            )}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Start button */}
-      <button
-        onClick={handleStart}
-        disabled={queue.length === 0}
-        className={cn(
-          'btn-primary transition-all duration-200 mb-4',
-          queue.length === 0 && 'opacity-40 cursor-not-allowed'
-        )}
-      >
-        {queue.length === 0
-          ? 'Select at least one group to start'
-          : `Start Practice — ${queue.length} word${queue.length === 1 ? '' : 's'} →`}
-      </button>
-
-      {/* Folders + Categories — single group section */}
-      <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground mb-1.5">
-        Folders
-      </p>
-      <div className="flex flex-wrap gap-2 mb-3">
-        {specialGroups.map((g) => (
-          <button
-            key={g.id}
-            onClick={() => toggleGroup(g.id)}
-            className={cn(
-              'px-4 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200',
-              selectedGroups.has(g.id)
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'bg-card text-muted-foreground border-border hover:opacity-80'
-            )}
-          >
-            {selectedGroups.has(g.id) ? `✓ ${g.label}` : g.label}
-          </button>
-        ))}
-      </div>
-
-      <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground mb-1.5">
-        Categories
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => toggleGroup(cat.id)}
-            className={cn(
-              'px-4 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200',
-              selectedGroups.has(cat.id)
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'bg-card text-muted-foreground border-border hover:opacity-80'
-            )}
-          >
-            {selectedGroups.has(cat.id)
-              ? `✓ ${cat.emoji} ${cat.label}`
-              : `${cat.emoji} ${cat.label}`}
-          </button>
-        ))}
+      {/* Start button — sticky above bottom nav */}
+      <div className="sticky bottom-16 z-20 px-4 pb-3 pt-2 bg-background/90 backdrop-blur-xl border-t border-border/40">
+        <button
+          onClick={handleStart}
+          disabled={queue.length === 0}
+          className={cn(
+            'btn-primary w-full transition-all duration-200',
+            queue.length === 0 && 'opacity-40 cursor-not-allowed'
+          )}
+        >
+          {queue.length === 0
+            ? 'Select at least one group to start'
+            : `Start Practice — ${queue.length} word${queue.length === 1 ? '' : 's'} →`}
+        </button>
       </div>
     </div>
   )
