@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useLocation, useNavigate, useBlocker } from 'react-router-dom'
-import { Volume2, Pause, Bookmark, BookmarkCheck, X, ChevronLeft, ChevronRight, Check } from 'lucide-react'
+import { Volume2, Pause, Bookmark, BookmarkCheck, X, ChevronLeft, ChevronRight, Check, Loader2 } from 'lucide-react'
 import { useCollections } from '@/hooks/useCollections'
+import { useCustomVocab } from '@/hooks/useCustomVocab'
 import FolderPopover from '@/components/FolderPopover'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { cn } from '@/lib/utils'
@@ -78,9 +79,12 @@ function SessionView({ queue, selectedGroups, selectedType }) {
   const navigate = useNavigate()
   const { isInAnyFolder } = useCollections()
 
+  const { updateWord } = useCustomVocab()
+
   const [index, setIndex]       = useState(0)
   const [revealed, setRevealed] = useState(false)
   const [playing, setPlaying]   = useState(false)
+  const [regenerating, setRegenerating] = useState(false)
   const [speed, setSpeed]       = useState(1)
   const [savePopoverOpen, setSavePopoverOpen] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
@@ -88,6 +92,7 @@ function SessionView({ queue, selectedGroups, selectedType }) {
 
   const audioRef = useRef(null)
   const isQuitting = useRef(false)
+  const cancelledRef = useRef(false)
 
   const blocker = useBlocker(!showSuccess)
 
@@ -102,28 +107,75 @@ function SessionView({ queue, selectedGroups, selectedType }) {
   }, [blocker.state])
 
   function cancelAudio() {
+    cancelledRef.current = true
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current.src = ''
       audioRef.current = null
     }
     setPlaying(false)
+    setRegenerating(false)
   }
 
   const handlePlay = useCallback(() => {
     if (!queue[index]) return
+    if (regenerating) return
     if (playing) { cancelAudio(); return }
     cancelAudio()
+    cancelledRef.current = false
+
     const word = queue[index]
-    const audio = new Audio(word.audioPath ?? `/audio/${word.id}.mp3`)
-    audio.playbackRate = speed
-    audioRef.current = audio
-    audio.onended = () => { audioRef.current = null; setPlaying(false) }
-    audio.onerror = () => { audioRef.current = null; setPlaying(false) }
-    audio.play()
-      .then(() => setPlaying(true))
-      .catch(() => { audioRef.current = null; setPlaying(false) })
-  }, [queue, index, speed, playing]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    function playFile(path) {
+      const audio = new Audio(path)
+      audio.playbackRate = speed
+      audioRef.current = audio
+      audio.onended = () => { audioRef.current = null; setPlaying(false) }
+      audio.onerror = () => { audioRef.current = null; setPlaying(false) }
+      audio.play()
+        .then(() => setPlaying(true))
+        .catch(() => { audioRef.current = null; setPlaying(false) })
+    }
+
+    function regenerateAndPlay(targetPath) {
+      setRegenerating(true)
+      fetch('/api/regenerate-audio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: word.id, french: word.french }),
+      })
+        .then((r) => {
+          if (cancelledRef.current) return
+          setRegenerating(false)
+          if (r.ok) {
+            updateWord(word.id, { audioPath: targetPath })
+            playFile(targetPath)
+          }
+        })
+        .catch(() => { if (!cancelledRef.current) setRegenerating(false) })
+    }
+
+    if (word.isCustom) {
+      const targetPath = `/custom-audio/${word.id}.mp3`
+      if (!word.audioPath) {
+        // audioPath is null — generate before playing
+        regenerateAndPlay(targetPath)
+      } else {
+        // audioPath set — try playing, regenerate on 404
+        const audio = new Audio(word.audioPath)
+        audio.playbackRate = speed
+        audioRef.current = audio
+        audio.onended = () => { audioRef.current = null; setPlaying(false) }
+        audio.onerror = () => { audioRef.current = null; if (!cancelledRef.current) regenerateAndPlay(targetPath) }
+        audio.play()
+          .then(() => setPlaying(true))
+          .catch(() => { audioRef.current = null; setPlaying(false) })
+      }
+      return
+    }
+
+    playFile(word.audioPath ?? `/audio/${word.id}.mp3`)
+  }, [queue, index, speed, playing, regenerating, updateWord]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleSpeedChange(newSpeed) {
     setSpeed(newSpeed)
@@ -220,7 +272,7 @@ function SessionView({ queue, selectedGroups, selectedType }) {
       <div className="flex-1 flex flex-col items-center justify-center gap-5">
 
         {/* "Tap to hear" label — above the button row */}
-        <span className={cn('text-xs text-muted-foreground', playing && 'invisible')}>
+        <span className={cn('text-xs text-muted-foreground', (playing || regenerating) && 'invisible')}>
           Tap to hear
         </span>
 
@@ -242,6 +294,7 @@ function SessionView({ queue, selectedGroups, selectedType }) {
 
           <button
             onClick={handlePlay}
+            disabled={regenerating}
             aria-label={playing ? `Stop ${word.french}` : `Play ${word.french}`}
             className="active:scale-95 transition-all duration-200"
           >
@@ -252,9 +305,11 @@ function SessionView({ queue, selectedGroups, selectedType }) {
               )}
               style={{ background: 'var(--btn-primary-gradient)', boxShadow: 'var(--btn-primary-shadow)' }}
             >
-              {playing
-                ? <Pause className="h-8 w-8" />
-                : <Volume2 className="h-8 w-8" />
+              {regenerating
+                ? <Loader2 className="h-8 w-8 animate-spin" />
+                : playing
+                  ? <Pause className="h-8 w-8" />
+                  : <Volume2 className="h-8 w-8" />
               }
             </span>
           </button>

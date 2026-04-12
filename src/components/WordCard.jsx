@@ -29,7 +29,7 @@ export default function WordCard({ word }) {
   // Prevent double-regeneration for the same word
   const retriedRef  = useRef(false)
 
-  // audioPath === null means audio is still being generated
+  // audioPath === null means generation failed or was interrupted — user can tap to retry
   const audioPending = word.isCustom && word.audioPath === null
 
   // Reset retry flag when word changes
