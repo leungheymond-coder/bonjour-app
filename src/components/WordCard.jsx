@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useSyncExternalStore } from 'react'
 import { Volume2, Pause, Bookmark, BookmarkCheck, AlertCircle, MoreHorizontal, Pencil, Trash2, Loader2 } from 'lucide-react'
 import { useCollections } from '@/hooks/useCollections'
 import { useCustomVocab } from '@/hooks/useCustomVocab'
@@ -10,6 +10,14 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 
 // Global: only one WordCard plays at a time
 let globalStop = null
+
+// Global: while any card is regenerating, all play buttons disable
+const _regenSet = new Set()
+const _regenListeners = new Set()
+const _subscribeRegen = (cb) => { _regenListeners.add(cb); return () => _regenListeners.delete(cb) }
+const _snapshotRegen  = () => _regenSet.size > 0
+function _startRegen(id) { _regenSet.add(id);    _regenListeners.forEach(l => l()) }
+function _endRegen(id)   { _regenSet.delete(id); _regenListeners.forEach(l => l()) }
 
 export default function WordCard({ word }) {
   const { isInAnyFolder, removeWordFromAll } = useCollections()
@@ -24,16 +32,16 @@ export default function WordCard({ word }) {
   const [editOpen, setEditOpen]         = useState(false)
   const [confirmOpen, setConfirmOpen]   = useState(false)
 
+  const anyRegenerating = useSyncExternalStore(_subscribeRegen, _snapshotRegen)
+
   const inAnyFolder = isInAnyFolder(word.id)
   const audioRef    = useRef(null)
-  // Prevent double-regeneration for the same word
-  const retriedRef  = useRef(false)
 
   // audioPath === null means generation failed or was interrupted — user can tap to retry
   const audioPending = word.isCustom && word.audioPath === null
 
-  // Reset retry flag when word changes
-  useEffect(() => { retriedRef.current = false }, [word.id])
+  // Clean up global regen state if component unmounts mid-regeneration
+  useEffect(() => () => _endRegen(word.id), [word.id])
 
   const cancelSpeakRef = useRef(null)
 
@@ -52,7 +60,7 @@ export default function WordCard({ word }) {
   })
 
   const handleSpeak = useCallback(() => {
-    if (regenerating) return
+    if (anyRegenerating) return
     if (speaking) { cancelSpeak(); return }
 
     if (globalStop && globalStop !== cancelSpeak) globalStop()
@@ -76,9 +84,9 @@ export default function WordCard({ word }) {
       setTimeout(() => setAudioError(false), 3000)
     }
 
-    // audioPath is null — audio generation failed or was interrupted; generate on demand
+    // audioPath is null — generation failed or interrupted; generate on demand
     if (audioPending) {
-      setRegenerating(true)
+      setRegenerating(true); _startRegen(word.id)
       fetch('/api/regenerate-audio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -86,15 +94,20 @@ export default function WordCard({ word }) {
       })
         .then((r) => r.ok ? r.json() : Promise.reject())
         .then((data) => {
-          setRegenerating(false)
+          setRegenerating(false); _endRegen(word.id)
           const resolvedPath = data.audioBase64
             ? `data:audio/mpeg;base64,${data.audioBase64}`
             : `/custom-audio/${word.id}.mp3`
           updateWord(word.id, { audioPath: resolvedPath })
+          if (globalStop && globalStop !== cancelSpeak) globalStop()
           globalStop = cancelSpeak
           playFile(resolvedPath, onFinalError)
         })
-        .catch(() => { setRegenerating(false); if (globalStop === cancelSpeak) globalStop = null; onFinalError() })
+        .catch(() => {
+          setRegenerating(false); _endRegen(word.id)
+          if (globalStop === cancelSpeak) globalStop = null
+          onFinalError()
+        })
       return
     }
 
@@ -104,10 +117,9 @@ export default function WordCard({ word }) {
       audioRef.current = null
       if (globalStop === cancelSpeak) globalStop = null
       // Auto-regenerate custom word audio (lost on Railway redeploy or missing)
-      if (word.isCustom && !retriedRef.current) {
-        retriedRef.current = true
+      if (word.isCustom) {
         setSpeaking(false)
-        setRegenerating(true)
+        setRegenerating(true); _startRegen(word.id)
         fetch('/api/regenerate-audio', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -115,22 +127,23 @@ export default function WordCard({ word }) {
         })
           .then((r) => r.ok ? r.json() : Promise.reject())
           .then((data) => {
-            setRegenerating(false)
+            setRegenerating(false); _endRegen(word.id)
             const resolvedPath = data.audioBase64
               ? `data:audio/mpeg;base64,${data.audioBase64}`
               : audioPath
             updateWord(word.id, { audioPath: resolvedPath })
+            if (globalStop && globalStop !== cancelSpeak) globalStop()
             globalStop = cancelSpeak
             playFile(resolvedPath, onFinalError)
           })
-          .catch(() => { setRegenerating(false); onFinalError() })
+          .catch(() => { setRegenerating(false); _endRegen(word.id); onFinalError() })
       } else {
         onFinalError()
       }
     }
 
     playFile(audioPath, onFirstError)
-  }, [word.id, word.audioPath, word.isCustom, word.french, audioPending, regenerating, speaking, cancelSpeak, updateWord])
+  }, [word.id, word.audioPath, word.isCustom, word.french, audioPending, anyRegenerating, speaking, cancelSpeak, updateWord])
 
   function handleDelete() {
     if (word.isCustom) {
@@ -163,12 +176,12 @@ export default function WordCard({ word }) {
         <div className="flex items-center gap-1 shrink-0 mt-0.5">
           {/* Audio button */}
           <button
-            onClick={audioError || regenerating ? undefined : handleSpeak}
+            onClick={audioError || anyRegenerating ? undefined : handleSpeak}
             aria-label={
-              regenerating  ? 'Restoring audio…' :
-              audioError    ? 'Audio error' :
-              speaking      ? `Stop ${word.french}` :
-                              `Speak ${word.french}`
+              regenerating   ? 'Restoring audio…' :
+              audioError     ? 'Audio error' :
+              speaking       ? `Stop ${word.french}` :
+                               `Speak ${word.french}`
             }
             className={cn(
               'w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90',
@@ -178,7 +191,9 @@ export default function WordCard({ word }) {
                   ? 'bg-muted text-muted-foreground'
                   : speaking
                     ? 'bg-primary text-primary-foreground animate-pulse-ring'
-                    : 'bg-primary/10 text-primary hover:bg-primary/20'
+                    : anyRegenerating
+                      ? 'bg-muted/50 text-muted-foreground/40 cursor-not-allowed'
+                      : 'bg-primary/10 text-primary hover:bg-primary/20'
             )}
           >
             {audioError
