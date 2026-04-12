@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useLocation, useNavigate, useBlocker } from 'react-router-dom'
-import { Volume2, Pause, Bookmark, BookmarkCheck, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Volume2, Pause, Bookmark, BookmarkCheck, X, ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import { useCollections } from '@/hooks/useCollections'
 import FolderPopover from '@/components/FolderPopover'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -87,11 +87,18 @@ function SessionView({ queue, selectedGroups, selectedType }) {
   const [quitDialogOpen, setQuitDialogOpen] = useState(false)
 
   const audioRef = useRef(null)
+  const isQuitting = useRef(false)
 
   const blocker = useBlocker(!showSuccess)
 
   useEffect(() => {
-    if (blocker.state === 'blocked') setQuitDialogOpen(true)
+    if (blocker.state === 'blocked') {
+      if (isQuitting.current) {
+        blocker.proceed()
+      } else {
+        setQuitDialogOpen(true)
+      }
+    }
   }, [blocker.state])
 
   function cancelAudio() {
@@ -151,6 +158,7 @@ function SessionView({ queue, selectedGroups, selectedType }) {
     if (blocker.state === 'blocked') {
       blocker.proceed()
     } else {
+      isQuitting.current = true
       navigate('/listen', { state: { selectedGroups, selectedType } })
     }
   }
@@ -176,10 +184,10 @@ function SessionView({ queue, selectedGroups, selectedType }) {
   const progress = ((index + 1) / queue.length) * 100
 
   return (
-    <div className="flex flex-col min-h-[calc(100svh-0px)] p-4 pb-8">
+    <div className="flex flex-col min-h-[calc(100svh-0px)] p-4">
 
-      {/* Header: X + progress */}
-      <div className="flex items-center gap-3 mb-6">
+      {/* Header: X + title */}
+      <div className="flex items-center gap-3 mb-3">
         <button
           onClick={() => setQuitDialogOpen(true)}
           aria-label="Quit practice"
@@ -187,44 +195,76 @@ function SessionView({ queue, selectedGroups, selectedType }) {
         >
           <X className="h-4 w-4 text-muted-foreground" />
         </button>
-        <div className="flex-1">
-          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <p className="text-[11px] text-muted-foreground text-right mt-1">
-            {index + 1} / {queue.length}
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold text-foreground font-heading">
+          Practice{' '}
+          <span className="text-muted-foreground font-normal text-xl">
+            ({index + 1}/{queue.length})
+          </span>
+        </h1>
+      </div>
+
+      {/* Progress bar */}
+      <div className="h-2.5 bg-muted rounded-full overflow-hidden mb-6">
+        <div
+          className="h-full rounded-full transition-all duration-300"
+          style={{
+            width: `${progress}%`,
+            background: 'var(--btn-primary-gradient)',
+            boxShadow: '0 0 8px rgba(108,71,255,0.45)',
+          }}
+        />
       </div>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col items-center justify-center gap-5">
 
-        {/* Play button */}
-        <button
-          onClick={handlePlay}
-          aria-label={playing ? `Stop ${word.french}` : `Play ${word.french}`}
-          className="flex flex-col items-center gap-2 active:scale-95 transition-all duration-200"
-        >
-          <span
+        {/* Prev / Play / Next row */}
+        <div className="flex items-center gap-6">
+          <button
+            onClick={handlePrev}
+            disabled={isFirst}
+            aria-label="Previous word"
             className={cn(
-              'flex items-center justify-center w-20 h-20 rounded-full text-white shadow-lg transition-all',
-              playing && 'animate-pulse-ring'
+              'w-12 h-12 rounded-full flex items-center justify-center border transition-all duration-200 active:scale-90',
+              isFirst
+                ? 'border-border text-muted-foreground/30 bg-card cursor-not-allowed'
+                : 'border-border text-muted-foreground bg-card hover:opacity-80'
             )}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+
+          <button
+            onClick={handlePlay}
+            aria-label={playing ? `Stop ${word.french}` : `Play ${word.french}`}
+            className="flex flex-col items-center gap-2 active:scale-95 transition-all duration-200"
+          >
+            <span className={cn('text-xs text-muted-foreground', playing && 'invisible')}>
+              Tap to hear
+            </span>
+            <span
+              className={cn(
+                'flex items-center justify-center w-20 h-20 rounded-full text-white shadow-lg transition-all',
+                playing && 'animate-pulse-ring'
+              )}
+              style={{ background: 'var(--btn-primary-gradient)', boxShadow: 'var(--btn-primary-shadow)' }}
+            >
+              {playing
+                ? <Pause className="h-8 w-8" />
+                : <Volume2 className="h-8 w-8" />
+              }
+            </span>
+          </button>
+
+          <button
+            onClick={handleNext}
+            aria-label={isLast ? 'Finish practice' : 'Next word'}
+            className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90 text-white"
             style={{ background: 'var(--btn-primary-gradient)', boxShadow: 'var(--btn-primary-shadow)' }}
           >
-            {playing
-              ? <Pause className="h-8 w-8" />
-              : <Volume2 className="h-8 w-8" />
-            }
-          </span>
-          {!playing && (
-            <span className="text-xs text-muted-foreground">Tap to hear</span>
-          )}
-        </button>
+            {isLast ? <Check className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+          </button>
+        </div>
 
         {/* Speed selector */}
         <div className="flex items-center gap-2">
@@ -295,30 +335,6 @@ function SessionView({ queue, selectedGroups, selectedType }) {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Prev / Next */}
-      <div className="flex gap-3 pt-4">
-        <button
-          onClick={handlePrev}
-          disabled={isFirst}
-          aria-label="Previous word"
-          className={cn(
-            'flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl border font-semibold text-sm transition-all duration-200',
-            isFirst
-              ? 'border-border text-muted-foreground/40 bg-card cursor-not-allowed'
-              : 'border-border text-muted-foreground bg-card hover:opacity-80 active:scale-[0.98]'
-          )}
-        >
-          <ChevronLeft className="h-4 w-4" /> Prev
-        </button>
-        <button
-          onClick={handleNext}
-          aria-label={isLast ? 'Finish practice' : 'Next word'}
-          className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl btn-primary active:scale-[0.98]"
-        >
-          {isLast ? 'Finish' : 'Next'} <ChevronRight className="h-4 w-4" />
-        </button>
       </div>
 
       {/* Quit confirmation */}
