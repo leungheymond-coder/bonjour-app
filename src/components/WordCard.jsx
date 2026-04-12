@@ -16,18 +16,24 @@ export default function WordCard({ word }) {
   const { removeWord }  = useCustomVocab()
   const { hideWord }    = useWordCustomizations()
 
-  const [speaking, setSpeaking]       = useState(false)
-  const [audioError, setAudioError]   = useState(false)
-  const [popoverOpen, setPopoverOpen] = useState(false)
-  const [menuOpen, setMenuOpen]       = useState(false)
-  const [editOpen, setEditOpen]       = useState(false)
-  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [speaking, setSpeaking]         = useState(false)
+  const [audioError, setAudioError]     = useState(false)
+  const [regenerating, setRegenerating] = useState(false)
+  const [popoverOpen, setPopoverOpen]   = useState(false)
+  const [menuOpen, setMenuOpen]         = useState(false)
+  const [editOpen, setEditOpen]         = useState(false)
+  const [confirmOpen, setConfirmOpen]   = useState(false)
 
   const inAnyFolder = isInAnyFolder(word.id)
   const audioRef    = useRef(null)
+  // Prevent double-regeneration for the same word
+  const retriedRef  = useRef(false)
 
   // audioPath === null means audio is still being generated
   const audioPending = word.isCustom && word.audioPath === null
+
+  // Reset retry flag when word changes
+  useEffect(() => { retriedRef.current = false }, [word.id])
 
   const cancelSpeakRef = useRef(null)
 
@@ -46,7 +52,7 @@ export default function WordCard({ word }) {
   })
 
   const handleSpeak = useCallback(() => {
-    if (audioPending) return
+    if (audioPending || regenerating) return
     if (speaking) { cancelSpeak(); return }
 
     if (globalStop && globalStop !== cancelSpeak) globalStop()
@@ -54,29 +60,53 @@ export default function WordCard({ word }) {
 
     setAudioError(false)
     const audioPath = word.audioPath ?? `/audio/${word.id}.mp3`
-    const audio = new Audio(audioPath)
-    audioRef.current = audio
 
-    audio.onended = () => {
-      audioRef.current = null
-      setSpeaking(false)
-      if (globalStop === cancelSpeak) globalStop = null
+    function playFile(path, onErr) {
+      const audio = new Audio(path)
+      audioRef.current = audio
+      audio.onended = () => { audioRef.current = null; setSpeaking(false); if (globalStop === cancelSpeak) globalStop = null }
+      audio.onerror = onErr
+      audio.play().then(() => setSpeaking(true)).catch(onErr)
     }
-    audio.onerror = () => {
+
+    function onFinalError() {
       audioRef.current = null
       setSpeaking(false)
       setAudioError(true)
       if (globalStop === cancelSpeak) globalStop = null
       setTimeout(() => setAudioError(false), 3000)
     }
-    audio.play().then(() => setSpeaking(true)).catch(() => {
+
+    function onFirstError() {
       audioRef.current = null
-      setSpeaking(false)
-      setAudioError(true)
       if (globalStop === cancelSpeak) globalStop = null
-      setTimeout(() => setAudioError(false), 3000)
-    })
-  }, [word.id, word.audioPath, audioPending, speaking, cancelSpeak])
+      // Auto-regenerate custom word audio lost on Railway redeploy
+      if (word.isCustom && !retriedRef.current) {
+        retriedRef.current = true
+        setSpeaking(false)
+        setRegenerating(true)
+        fetch('/api/regenerate-audio', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: word.id, french: word.french }),
+        })
+          .then((r) => {
+            setRegenerating(false)
+            if (r.ok) {
+              globalStop = cancelSpeak
+              playFile(audioPath, onFinalError)
+            } else {
+              onFinalError()
+            }
+          })
+          .catch(() => { setRegenerating(false); onFinalError() })
+      } else {
+        onFinalError()
+      }
+    }
+
+    playFile(audioPath, onFirstError)
+  }, [word.id, word.audioPath, word.isCustom, word.french, audioPending, regenerating, speaking, cancelSpeak])
 
   function handleDelete() {
     if (word.isCustom) {
@@ -109,9 +139,10 @@ export default function WordCard({ word }) {
         <div className="flex items-center gap-1 shrink-0 mt-0.5">
           {/* Audio button */}
           <button
-            onClick={audioPending || audioError ? undefined : handleSpeak}
+            onClick={audioPending || audioError || regenerating ? undefined : handleSpeak}
             aria-label={
               audioPending  ? 'Generating audio…' :
+              regenerating  ? 'Restoring audio…' :
               audioError    ? 'Audio error' :
               speaking      ? `Stop ${word.french}` :
                               `Speak ${word.french}`
@@ -120,7 +151,7 @@ export default function WordCard({ word }) {
               'w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90',
               audioError
                 ? 'bg-destructive/10 text-destructive'
-                : audioPending
+                : audioPending || regenerating
                   ? 'bg-muted text-muted-foreground'
                   : speaking
                     ? 'bg-primary text-primary-foreground animate-pulse-ring'
@@ -129,7 +160,7 @@ export default function WordCard({ word }) {
           >
             {audioError
               ? <AlertCircle className="h-4 w-4" />
-              : audioPending
+              : audioPending || regenerating
                 ? <Loader2 className="h-4 w-4 animate-spin" />
                 : speaking
                   ? <Pause className="h-4 w-4" />

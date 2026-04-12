@@ -194,6 +194,35 @@ app.post('/api/custom-word', async (req, res) => {
   }
 })
 
+// ─── POST /api/regenerate-audio — re-create a lost custom audio file ─────────
+// Called automatically by the client when a custom word's audio 404s after a
+// Railway redeploy wipes server/custom-audio/.
+
+app.post('/api/regenerate-audio', aiLimiter, async (req, res) => {
+  const { id, french } = req.body
+  if (!id || !french || typeof french !== 'string' || french.length > 300) {
+    return res.status(400).json({ error: 'Invalid request.' })
+  }
+  if (!/^custom_\d+$/.test(id)) {
+    return res.status(400).json({ error: 'Invalid id format.' })
+  }
+  try {
+    const mp3 = await openai.audio.speech.create({
+      model: 'gpt-4o-mini-tts',
+      voice: 'alloy',
+      input: french,
+      instructions: 'You are a native French speaker. Pronounce every word with authentic French pronunciation. Never use English phonetics.',
+      speed: 1.0,
+    })
+    const buffer = Buffer.from(await mp3.arrayBuffer())
+    writeFileSync(join(customAudioDir, `${id}.mp3`), buffer)
+    return res.json({ success: true })
+  } catch (err) {
+    console.error('[/api/regenerate-audio]', err.message)
+    return res.status(500).json({ error: 'Failed to regenerate audio.' })
+  }
+})
+
 // ─── POST /api/explore — AI vocabulary/sentence generation ──────────────────
 
 app.post('/api/explore', async (req, res) => {
