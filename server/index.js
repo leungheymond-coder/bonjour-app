@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
-import { existsSync, mkdirSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync } from 'fs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 dotenv.config({ path: join(__dirname, '.env') })
@@ -184,10 +184,7 @@ app.post('/api/custom-word', async (req, res) => {
     })
 
     const buffer = Buffer.from(await mp3.arrayBuffer())
-    const filePath = join(customAudioDir, `${id}.mp3`)
-    writeFileSync(filePath, buffer)
-
-    return res.json({ success: true })
+    return res.json({ success: true, audioBase64: buffer.toString('base64') })
   } catch (err) {
     console.error('[/api/custom-word]', err.message)
     return res.status(500).json({ error: 'Failed to generate audio.' })
@@ -215,8 +212,7 @@ app.post('/api/regenerate-audio', aiLimiter, async (req, res) => {
       speed: 1.0,
     })
     const buffer = Buffer.from(await mp3.arrayBuffer())
-    writeFileSync(join(customAudioDir, `${id}.mp3`), buffer)
-    return res.json({ success: true })
+    return res.json({ success: true, audioBase64: buffer.toString('base64') })
   } catch (err) {
     console.error('[/api/regenerate-audio]', err.message)
     return res.status(500).json({ error: 'Failed to regenerate audio.' })

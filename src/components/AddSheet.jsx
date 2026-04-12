@@ -17,9 +17,13 @@ async function generateAudioBatch(words, updateWord) {
         body:    JSON.stringify({ id: word.id, french: word.french, english: word.english, chinese: word.chinese }),
       })
       if (res.ok) {
-        updateWord(word.id, { audioPath: `/custom-audio/${word.id}.mp3` })
+        const data = await res.json()
+        const audioPath = data.audioBase64
+          ? `data:audio/mpeg;base64,${data.audioBase64}`
+          : `/custom-audio/${word.id}.mp3`
+        updateWord(word.id, { audioPath })
       }
-      // On failure: leave audioPath as null — card shows error icon
+      // On failure: leave audioPath as null — card shows retry button
     } catch {
       // Network error: leave audioPath as null
     }
@@ -98,7 +102,11 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
         body:    JSON.stringify({ id: word.id, french: word.french, english: word.english, chinese: word.chinese }),
       })
       if (!res.ok) throw new Error(`${res.status}`)
-      addWord({ ...word, audioPath: `/custom-audio/${word.id}.mp3` })
+      const data = await res.json()
+      const audioPath = data.audioBase64
+        ? `data:audio/mpeg;base64,${data.audioBase64}`
+        : `/custom-audio/${word.id}.mp3`
+      addWord({ ...word, audioPath })
       onClose()
     } catch {
       setErrorMsg('Failed to save. Please try again.')

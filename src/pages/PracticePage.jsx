@@ -144,13 +144,15 @@ function SessionView({ queue, selectedGroups, selectedType }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: word.id, french: word.french }),
       })
-        .then((r) => {
+        .then((r) => r.ok ? r.json() : Promise.reject())
+        .then((data) => {
           if (cancelledRef.current) return
           setRegenerating(false)
-          if (r.ok) {
-            updateWord(word.id, { audioPath: targetPath })
-            playFile(targetPath)
-          }
+          const resolvedPath = data.audioBase64
+            ? `data:audio/mpeg;base64,${data.audioBase64}`
+            : targetPath
+          updateWord(word.id, { audioPath: resolvedPath })
+          playFile(resolvedPath)
         })
         .catch(() => { if (!cancelledRef.current) setRegenerating(false) })
     }

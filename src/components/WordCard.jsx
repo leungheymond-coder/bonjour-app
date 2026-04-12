@@ -78,23 +78,21 @@ export default function WordCard({ word }) {
 
     // audioPath is null — audio generation failed or was interrupted; generate on demand
     if (audioPending) {
-      const newPath = `/custom-audio/${word.id}.mp3`
       setRegenerating(true)
       fetch('/api/regenerate-audio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: word.id, french: word.french }),
       })
-        .then((r) => {
+        .then((r) => r.ok ? r.json() : Promise.reject())
+        .then((data) => {
           setRegenerating(false)
-          if (r.ok) {
-            updateWord(word.id, { audioPath: newPath })
-            globalStop = cancelSpeak
-            playFile(newPath, onFinalError)
-          } else {
-            if (globalStop === cancelSpeak) globalStop = null
-            onFinalError()
-          }
+          const resolvedPath = data.audioBase64
+            ? `data:audio/mpeg;base64,${data.audioBase64}`
+            : `/custom-audio/${word.id}.mp3`
+          updateWord(word.id, { audioPath: resolvedPath })
+          globalStop = cancelSpeak
+          playFile(resolvedPath, onFinalError)
         })
         .catch(() => { setRegenerating(false); if (globalStop === cancelSpeak) globalStop = null; onFinalError() })
       return
@@ -105,7 +103,7 @@ export default function WordCard({ word }) {
     function onFirstError() {
       audioRef.current = null
       if (globalStop === cancelSpeak) globalStop = null
-      // Auto-regenerate custom word audio lost on Railway redeploy
+      // Auto-regenerate custom word audio (lost on Railway redeploy or missing)
       if (word.isCustom && !retriedRef.current) {
         retriedRef.current = true
         setSpeaking(false)
@@ -115,14 +113,15 @@ export default function WordCard({ word }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: word.id, french: word.french }),
         })
-          .then((r) => {
+          .then((r) => r.ok ? r.json() : Promise.reject())
+          .then((data) => {
             setRegenerating(false)
-            if (r.ok) {
-              globalStop = cancelSpeak
-              playFile(audioPath, onFinalError)
-            } else {
-              onFinalError()
-            }
+            const resolvedPath = data.audioBase64
+              ? `data:audio/mpeg;base64,${data.audioBase64}`
+              : audioPath
+            updateWord(word.id, { audioPath: resolvedPath })
+            globalStop = cancelSpeak
+            playFile(resolvedPath, onFinalError)
           })
           .catch(() => { setRegenerating(false); onFinalError() })
       } else {
