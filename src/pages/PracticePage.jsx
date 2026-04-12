@@ -137,6 +137,7 @@ function SessionView({ queue, selectedGroups, selectedType }) {
     setIndex(newIndex)
     setRevealed(false)
     setSavePopoverOpen(false)
+    window.scrollTo(0, 0)
   }
 
   function handlePrev() {
@@ -218,8 +219,13 @@ function SessionView({ queue, selectedGroups, selectedType }) {
       {/* Main content */}
       <div className="flex-1 flex flex-col items-center justify-center gap-5">
 
-        {/* Prev / Play / Next row */}
-        <div className="flex items-center gap-6">
+        {/* "Tap to hear" label — above the button row */}
+        <span className={cn('text-xs text-muted-foreground', playing && 'invisible')}>
+          Tap to hear
+        </span>
+
+        {/* Prev / Play / Next row — all three circles align */}
+        <div className="flex items-center gap-6 -mt-3">
           <button
             onClick={handlePrev}
             disabled={isFirst}
@@ -237,11 +243,8 @@ function SessionView({ queue, selectedGroups, selectedType }) {
           <button
             onClick={handlePlay}
             aria-label={playing ? `Stop ${word.french}` : `Play ${word.french}`}
-            className="flex flex-col items-center gap-2 active:scale-95 transition-all duration-200"
+            className="active:scale-95 transition-all duration-200"
           >
-            <span className={cn('text-xs text-muted-foreground', playing && 'invisible')}>
-              Tap to hear
-            </span>
             <span
               className={cn(
                 'flex items-center justify-center w-20 h-20 rounded-full text-white shadow-lg transition-all',
