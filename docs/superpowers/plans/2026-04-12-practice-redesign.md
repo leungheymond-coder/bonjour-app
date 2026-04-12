@@ -514,7 +514,6 @@ export default function PracticePage() {
       audioRef.current = null
     }
     setPlaying(false)
-    setTtsLoading(false)
   }
 
   const handlePlay = useCallback(() => {
@@ -962,7 +961,6 @@ function SessionView({ queue, selectedGroups, selectedType }) {
       audioRef.current = null
     }
     setPlaying(false)
-    setTtsLoading(false)
   }
 
   const handlePlay = useCallback(() => {
