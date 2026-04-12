@@ -23,15 +23,16 @@ French vocabulary learning app for a non-technical solo developer.
 
 ## Architecture Rules
 - `src/data/vocabulary.js` — do not add/remove built-in words or categories without discussion
-- Custom words use `isCustom: true` and `audioPath: /custom-audio/{id}.mp3`
-- IDs for custom words: `custom_${Date.now()}` format (validated on server)
+- Custom words use `isCustom: true`; IDs: `custom_${Date.now()}` format (validated on server)
 - Built-in audio: static MP3s at `public/audio/{id}.mp3` (all 324 words pre-generated, committed to git)
-- Custom audio: served from `server/custom-audio/{id}.mp3`; auto-regenerated via `POST /api/regenerate-audio` on 404
+- Custom audio: stored as `data:audio/mpeg;base64,...` data URL in `word.audioPath` in localStorage — survives redeployments; `/api/custom-word` and `/api/regenerate-audio` return `audioBase64` (no disk writes)
 - Always use `word.audioPath ?? \`/audio/${word.id}.mp3\`` at audio call sites
 - `App.jsx` uses `createBrowserRouter` (data router) — required for `useBlocker` in PracticePage
 - All modal/sheet overlays use `createPortal(document.body)` — required to escape `<main className="relative z-10">` stacking context in App.jsx
 - `applyCustomizations(words, customizations)` — call before filtering in any page that displays words
+- Practice filter uses `w.contentType` (`'vocab'` / `'sentence'`), not `w.type`
+- `_regenSet` module-level observable in WordCard — all play buttons disable while any card regenerates audio
 
 ## Known Permanent Issues
-- Custom audio files (`server/custom-audio/*.mp3`) are lost on Railway redeploy — WordCard auto-regenerates on first play after redeploy (brief spinner), subsequent plays are instant
 - API keys need rotation (were briefly exposed in a chat session)
+- `data:` URL audio in localStorage grows ~30–80 KB per custom word; not an issue at current scale but monitor

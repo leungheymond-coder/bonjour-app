@@ -207,6 +207,22 @@ function SessionView({ queue, selectedGroups, selectedType }) {
     }
   }
 
+  // Keyboard shortcuts — use a ref so the effect never needs to re-register
+  const keyHandlersRef = useRef({})
+  keyHandlersRef.current = { handlePrev, handleNext, handlePlay, setRevealed }
+
+  useEffect(() => {
+    function onKeyDown(e) {
+      const h = keyHandlersRef.current
+      if (e.key === 'ArrowLeft')  { e.preventDefault(); h.handlePrev() }
+      if (e.key === 'ArrowRight') { e.preventDefault(); h.handleNext() }
+      if (e.key === 'ArrowUp')    { e.preventDefault(); h.handlePlay() }
+      if (e.key === 'ArrowDown')  { e.preventDefault(); h.setRevealed(true) }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   function handleQuitConfirm() {
     setQuitDialogOpen(false)
     cancelAudio()
