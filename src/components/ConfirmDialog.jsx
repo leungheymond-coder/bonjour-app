@@ -1,7 +1,14 @@
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
-export default function ConfirmDialog({ title, message, confirmLabel = 'Delete', onConfirm, onCancel }) {
+export default function ConfirmDialog({
+  title,
+  message,
+  confirmLabel = 'Delete',
+  showWarning = true,
+  onConfirm,
+  onCancel,
+}) {
   return createPortal(
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
       <div
@@ -21,7 +28,9 @@ export default function ConfirmDialog({ title, message, confirmLabel = 'Delete',
           </button>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">{message}</p>
-        <p className="text-xs font-semibold text-destructive">This action cannot be undone.</p>
+        {showWarning && (
+          <p className="text-xs font-semibold text-destructive">This action cannot be undone.</p>
+        )}
         <div className="flex gap-2">
           <button
             onClick={onCancel}
