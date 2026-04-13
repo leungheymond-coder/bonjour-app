@@ -161,14 +161,21 @@ export default function WordCard({ word }) {
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          {(() => {
-            const cat = categories.find((c) => c.id === word.category)
-            return cat ? (
-              <span className="inline-block text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded mb-1 bg-muted text-muted-foreground">
-                {cat.emoji} {cat.label}
+          <div className="flex items-center gap-1.5 mb-1">
+            {(() => {
+              const cat = categories.find((c) => c.id === word.category)
+              return cat ? (
+                <span className="inline-block text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                  {cat.emoji} {cat.label}
+                </span>
+              ) : null
+            })()}
+            {word.level && (
+              <span className="inline-block text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded bg-primary/10 text-primary/80">
+                {word.level}
               </span>
-            ) : null
-          })()}
+            )}
+          </div>
           <p className="text-2xl font-bold text-foreground leading-tight font-heading">
             {word.french}
           </p>
