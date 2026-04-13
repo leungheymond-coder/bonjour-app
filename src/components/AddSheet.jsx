@@ -140,6 +140,7 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
           categoryLabel: selectedCat?.labelFrench ?? categoryId,
           existingWords: existingFrench,
           type:  contentType,
+          level: level || undefined,
           count: 5,
         }),
       })
@@ -150,7 +151,8 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
       const VALID_LEVELS = ['A1', 'A2', 'B1', 'B2']
       const words = data.words.map((w, i) => ({
         ...w,
-        level:       VALID_LEVELS.includes(w.level) ? w.level : undefined,
+        // If user picked a level, use it; otherwise trust the model's per-word level
+        level:       level || (VALID_LEVELS.includes(w.level) ? w.level : undefined),
         category:    categoryId,
         contentType: contentType,
         addedAt:     now + i,
@@ -408,6 +410,29 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
         {step === 'ai' && (
           <div className="flex flex-col gap-4">
             {renderTypePicker()}
+
+            {/* Level picker */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-2">Level <span className="font-normal">(optional)</span></p>
+              <div className="flex gap-2">
+                {['A1', 'A2', 'B1', 'B2'].map((l) => (
+                  <button
+                    key={l}
+                    type="button"
+                    onClick={() => setLevel((prev) => prev === l ? '' : l)}
+                    className={cn(
+                      'flex-1 py-2 rounded-lg text-xs font-semibold border transition-colors',
+                      level === l
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border text-muted-foreground hover:bg-muted'
+                    )}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {renderCategoryPicker()}
 
             {errorMsg && <p className="text-xs text-destructive">{errorMsg}</p>}

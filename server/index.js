@@ -238,7 +238,7 @@ app.post('/api/regenerate-audio', aiLimiter, async (req, res) => {
 // ─── POST /api/explore — AI vocabulary/sentence generation ──────────────────
 
 app.post('/api/explore', async (req, res) => {
-  const { categoryId, categoryLabel, existingWords = [], type = 'vocab', count = 5 } = req.body
+  const { categoryId, categoryLabel, existingWords = [], type = 'vocab', level, count = 5 } = req.body
 
   if (!categoryId || !categoryLabel) {
     return res.status(400).json({ error: 'Missing required fields: categoryId, categoryLabel.' })
@@ -252,6 +252,8 @@ app.post('/api/explore', async (req, res) => {
   if (!['vocab', 'sentence'].includes(type)) {
     return res.status(400).json({ error: 'Invalid type. Must be "vocab" or "sentence".' })
   }
+  const VALID_LEVELS = ['A1', 'A2', 'B1', 'B2']
+  const safeLevel = VALID_LEVELS.includes(level) ? level : null
   const safeCount = Math.min(Math.max(parseInt(count, 10) || 5, 1), 10)
 
   const safeExisting = Array.isArray(existingWords)
@@ -267,9 +269,19 @@ app.post('/api/explore', async (req, res) => {
   const safeLabel = categoryLabel.replace(/"/g, '\u2019')
   const safeId    = categoryId.replace(/[^a-zA-Z0-9_\-]/g, '')
 
+  const levelDescriptions = {
+    A1: 'absolute beginner (most common, basic everyday words a total beginner learns first)',
+    A2: 'elementary (common everyday vocabulary, simple phrases)',
+    B1: 'intermediate (broader vocabulary, less common terms)',
+    B2: 'upper-intermediate (nuanced, formal, or specialised terms)',
+  }
+  const levelHint = safeLevel
+    ? ` All items must be CEFR level ${safeLevel} — ${levelDescriptions[safeLevel]}.`
+    : ''
+
   const typeInstruction = type === 'sentence'
-    ? `Generate exactly ${safeCount} unique, natural French sentences related to the category "${safeLabel}" (${safeId}). Each sentence should be a complete, everyday sentence a learner would find useful.`
-    : `Generate exactly ${safeCount} unique French words or short phrases for the category "${safeLabel}" (${safeId}). Include article if noun (e.g. "le pain").`
+    ? `Generate exactly ${safeCount} unique, natural French sentences related to the category "${safeLabel}" (${safeId}). Each sentence should be a complete, everyday sentence a learner would find useful.${levelHint}`
+    : `Generate exactly ${safeCount} unique French words or short phrases for the category "${safeLabel}" (${safeId}). Include article if noun (e.g. "le pain").${levelHint}`
 
   const prompt = `You are a French language teacher. ${typeInstruction}${existingHint}
 
