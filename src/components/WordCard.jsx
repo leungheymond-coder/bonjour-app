@@ -3,6 +3,7 @@ import { Volume2, Pause, Bookmark, BookmarkCheck, AlertCircle, MoreHorizontal, P
 import { useCollections } from '@/hooks/useCollections'
 import { useCustomVocab } from '@/hooks/useCustomVocab'
 import { useWordCustomizations } from '@/hooks/useWordCustomizations'
+import { categories } from '@/data/vocabulary'
 import { cn } from '@/lib/utils'
 import FolderPopover from '@/components/FolderPopover'
 import WordEditSheet from '@/components/WordEditSheet'
@@ -160,14 +161,14 @@ export default function WordCard({ word }) {
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <span className={cn(
-            'inline-block text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded mb-1',
-            word.contentType === 'sentence'
-              ? 'bg-amber-500/10 text-amber-500'
-              : 'bg-primary/10 text-primary'
-          )}>
-            {word.contentType === 'sentence' ? 'sentence' : 'vocab'}
-          </span>
+          {(() => {
+            const cat = categories.find((c) => c.id === word.category)
+            return cat ? (
+              <span className="inline-block text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded mb-1 bg-muted text-muted-foreground">
+                {cat.emoji} {cat.label}
+              </span>
+            ) : null
+          })()}
           <p className="text-2xl font-bold text-foreground leading-tight font-heading">
             {word.french}
           </p>

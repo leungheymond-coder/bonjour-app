@@ -223,6 +223,11 @@ function SessionView({ queue, selectedGroups, selectedType }) {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Auto-play when landing on a new word (also fires on session start)
+  useEffect(() => {
+    handlePlay()
+  }, [index]) // eslint-disable-line react-hooks/exhaustive-deps
+
   function handleQuitConfirm() {
     setQuitDialogOpen(false)
     cancelAudio()
