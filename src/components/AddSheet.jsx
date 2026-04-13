@@ -34,8 +34,8 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
   const { addWord, addWordBatch, updateWord, customWords } = useCustomVocab()
 
   const [step, setStep]               = useState('method')   // 'method' | 'manual' | 'ai'
-  const [contentType, setContentType] = useState(defaultContentType)
-  const [categoryId, setCategoryId]   = useState(categories[0]?.id ?? '')
+  const [contentType, setContentType] = useState('')
+  const [categoryId, setCategoryId]   = useState('')
 
   // Manual form state
   const [french, setFrench]     = useState('')
@@ -70,7 +70,9 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
       const data = await res.json()
       setEnglish(data.english ?? '')
       setChinese(data.chinese ?? '')
-      if (data.level) setLevel(data.level)
+      if (data.level)    setLevel(data.level)
+      if (data.type)     setContentType(data.type)
+      if (data.category) setCategoryId(data.category)
       setStatus('idle')
     } catch {
       setErrorMsg('AI generation failed. Fill in fields manually.')
@@ -82,7 +84,7 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
 
   async function handleManualSave(e) {
     e.preventDefault()
-    if (!french.trim() || !english.trim() || !chinese.trim() || busy) return
+    if (!french.trim() || !english.trim() || !chinese.trim() || !contentType || !categoryId || busy) return
     setStatus('saving')
     setErrorMsg('')
     const word = {
@@ -297,10 +299,8 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
         {/* Step: manual form */}
         {step === 'manual' && (
           <form onSubmit={handleManualSave} className="flex flex-col gap-3">
-            {renderTypePicker()}
-            {renderCategoryPicker()}
 
-            {/* French + AI Fill */}
+            {/* French + AI Fill — always first */}
             <div className="flex gap-2">
               <div className="flex-1">
                 <label className="text-xs font-semibold text-muted-foreground mb-1 block">
@@ -310,7 +310,7 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
                   type="text"
                   value={french}
                   onChange={(e) => setFrench(e.target.value)}
-                  placeholder={contentType === 'sentence' ? 'e.g. Je vais au marché.' : 'e.g. le pain'}
+                  placeholder="e.g. le pain"
                   maxLength={300}
                   className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
                   autoFocus
@@ -335,6 +335,32 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
               </div>
             </div>
 
+            {renderTypePicker()}
+
+            {/* Level picker */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-2">Level</p>
+              <div className="flex gap-2">
+                {['A1', 'A2', 'B1', 'B2'].map((l) => (
+                  <button
+                    key={l}
+                    type="button"
+                    onClick={() => setLevel((prev) => prev === l ? '' : l)}
+                    className={cn(
+                      'flex-1 py-2 rounded-lg text-xs font-semibold border transition-colors',
+                      level === l
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border text-muted-foreground hover:bg-muted'
+                    )}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {renderCategoryPicker()}
+
             <div>
               <label className="text-xs font-semibold text-muted-foreground mb-1 block">
                 English <span className="text-destructive">*</span>
@@ -343,7 +369,7 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
                 type="text"
                 value={english}
                 onChange={(e) => setEnglish(e.target.value)}
-                placeholder="e.g. I'm going to the market."
+                placeholder="e.g. bread"
                 maxLength={300}
                 className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
               />
@@ -357,7 +383,7 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
                 type="text"
                 value={chinese}
                 onChange={(e) => setChinese(e.target.value)}
-                placeholder="e.g. 我去市場。"
+                placeholder="e.g. 麵包"
                 maxLength={300}
                 className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
               />
@@ -367,10 +393,10 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
 
             <button
               type="submit"
-              disabled={!french.trim() || !english.trim() || !chinese.trim() || busy}
+              disabled={!french.trim() || !english.trim() || !chinese.trim() || !contentType || !categoryId || busy}
               className={cn(
                 'btn-primary w-full py-2.5 text-sm font-semibold transition-all duration-200',
-                (!french.trim() || !english.trim() || !chinese.trim() || busy) && 'opacity-50 cursor-not-allowed'
+                (!french.trim() || !english.trim() || !chinese.trim() || !contentType || !categoryId || busy) && 'opacity-50 cursor-not-allowed'
               )}
             >
               {status === 'saving' ? 'Adding…' : 'Add Word'}

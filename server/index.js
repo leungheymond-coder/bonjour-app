@@ -134,15 +134,22 @@ app.post('/api/enrich', async (req, res) => {
   const { french } = req.body
   if (!french || french.length > 300) return res.status(400).json({ error: 'Missing or invalid french field.' })
 
+  const categoryIds = [
+    'greetings', 'verbs', 'home', 'food', 'numbers', 'time',
+    'sports', 'animals', 'environment', 'travel', 'jobs', 'school', 'leisure',
+  ]
+
   const prompt = `You are a French language teacher. Given this French word or phrase: "${french}"
 
 Return ONLY valid JSON with no markdown or explanation:
-{"english":"...","chinese":"...","level":"..."}
+{"english":"...","chinese":"...","level":"...","type":"...","category":"..."}
 
 Rules:
 - english: concise English translation
 - chinese: Traditional Chinese translation
-- level: CEFR level — one of A1, A2, B1, B2 based on how early a French learner encounters this word`
+- level: CEFR level — one of A1, A2, B1, B2
+- type: "vocab" if this is a single word or short phrase, "sentence" if it is a full sentence
+- category: the single best-fit category id from this list: ${categoryIds.join(', ')}`
 
   try {
     const message = await anthropic.messages.create({
@@ -155,7 +162,15 @@ Rules:
     const match = raw.match(/\{[\s\S]*\}/)
     if (!match) return res.status(500).json({ error: 'Could not parse model response as JSON.' })
 
-    return res.json(JSON.parse(match[0]))
+    const parsed = JSON.parse(match[0])
+    const VALID_LEVELS = ['A1', 'A2', 'B1', 'B2']
+    return res.json({
+      english:  parsed.english  ?? '',
+      chinese:  parsed.chinese  ?? '',
+      level:    VALID_LEVELS.includes(parsed.level) ? parsed.level : undefined,
+      type:     ['vocab', 'sentence'].includes(parsed.type) ? parsed.type : undefined,
+      category: categoryIds.includes(parsed.category) ? parsed.category : undefined,
+    })
   } catch (err) {
     console.error('[/api/enrich]', err.message)
     return res.status(500).json({ error: 'Failed to enrich word.' })
