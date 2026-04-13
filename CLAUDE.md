@@ -22,7 +22,7 @@ French vocabulary learning app for a non-technical solo developer.
 - `main` — active branch, live on Railway. v2 multi-tag direction fully merged.
 
 ## Architecture Rules
-- `src/data/vocabulary.js` — do not add/remove built-in words or categories without discussion
+- `src/data/vocabulary.js` — do not add/remove built-in words or categories without discussion; every entry has a `level` field (A1/A2/B1/B2) — do not strip it
 - Custom words use `isCustom: true`; IDs: `custom_${Date.now()}` format (validated on server)
 - Built-in audio: static MP3s at `public/audio/{id}.mp3` (all 324 words pre-generated, committed to git)
 - Custom audio: stored as `data:audio/mpeg;base64,...` data URL in `word.audioPath` in localStorage — survives redeployments; `/api/custom-word` and `/api/regenerate-audio` return `audioBase64` (no disk writes)
@@ -32,6 +32,9 @@ French vocabulary learning app for a non-technical solo developer.
 - `applyCustomizations(words, customizations)` — call before filtering in any page that displays words
 - Practice filter uses `w.contentType` (`'vocab'` / `'sentence'`), not `w.type`
 - `_regenSet` module-level observable in WordCard — all play buttons disable while any card regenerates audio
+- `/api/enrich` returns `english`, `chinese`, `level`, `type`, `category` (all validated); used by AddSheet AI Fill to populate all fields at once
+- `/api/explore` accepts optional `level` param to constrain CEFR difficulty of generated words
+- WordCard shows category chip (zinc-200) + level chip (primary/10) — no vocab/sentence badge
 
 ## Known Permanent Issues
 - API keys need rotation (were briefly exposed in a chat session)

@@ -109,9 +109,11 @@ function SessionView({ queue, selectedGroups, selectedType }) {
   function cancelAudio() {
     cancelledRef.current = true
     if (audioRef.current) {
-      audioRef.current.pause()
-      audioRef.current.src = ''
-      audioRef.current = null
+      const audio = audioRef.current
+      audioRef.current = null  // null ref first so stale handlers see null
+      audio.onended = null     // detach handlers before pausing to prevent async callbacks
+      audio.onerror = null
+      audio.pause()
     }
     setPlaying(false)
     setRegenerating(false)
