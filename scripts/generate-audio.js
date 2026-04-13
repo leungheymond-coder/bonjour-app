@@ -27,11 +27,13 @@ async function generateAudio(word) {
     console.log(`  skip  ${word.id} (${word.french})`)
     return
   }
+  // No global instructions — gpt-4o-mini-tts handles French naturally on its own.
+  // For words with tricky pronunciation, regenerate individually using
+  // IPA-guided instructions (see the à temps partiel example in git history).
   const mp3 = await openai.audio.speech.create({
     model: 'gpt-4o-mini-tts',
     voice: 'alloy',
     input: word.french,
-    instructions: 'You are a native French speaker. Pronounce every word with authentic French pronunciation. Never use English phonetics.',
     speed: 1.0,
   })
   const buffer = Buffer.from(await mp3.arrayBuffer())
