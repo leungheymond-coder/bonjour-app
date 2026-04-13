@@ -41,6 +41,7 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
   const [french, setFrench]     = useState('')
   const [english, setEnglish]   = useState('')
   const [chinese, setChinese]   = useState('')
+  const [level, setLevel]       = useState('')
   const [status, setStatus]     = useState('idle')   // idle | enriching | saving | generating | error
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -69,6 +70,7 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
       const data = await res.json()
       setEnglish(data.english ?? '')
       setChinese(data.chinese ?? '')
+      if (data.level) setLevel(data.level)
       setStatus('idle')
     } catch {
       setErrorMsg('AI generation failed. Fill in fields manually.')
@@ -88,6 +90,7 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
       french:      french.trim(),
       english:     english.trim(),
       chinese:     chinese.trim(),
+      level:       level || undefined,
       category:    categoryId,
       contentType,
       type:        'word',
@@ -142,8 +145,10 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
       const data = await res.json()
 
       const now = Date.now()
+      const VALID_LEVELS = ['A1', 'A2', 'B1', 'B2']
       const words = data.words.map((w, i) => ({
         ...w,
+        level:       VALID_LEVELS.includes(w.level) ? w.level : undefined,
         category:    categoryId,
         contentType: contentType,
         addedAt:     now + i,

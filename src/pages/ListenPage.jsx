@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 
 // ─── Pool builder ─────────────────────────────────────────────────────────────
 
-function buildQueue(selectedGroupIds, selectedType, collections, customWords, customizations) {
+function buildQueue(selectedGroupIds, selectedType, selectedLevel, collections, customWords, customizations) {
   const allWords = applyCustomizations([...vocabulary, ...customWords], customizations)
   const seen = new Set()
   const pool = []
@@ -29,8 +29,9 @@ function buildQueue(selectedGroupIds, selectedType, collections, customWords, cu
     }
   }
 
-  const filtered =
-    selectedType === 'all' ? pool : pool.filter((w) => w.contentType === selectedType)
+  const filtered = pool
+    .filter((w) => selectedType === 'all' || w.contentType === selectedType)
+    .filter((w) => selectedLevel === 'all' || w.level === selectedLevel)
 
   // Fisher-Yates shuffle
   const arr = [...filtered]
@@ -61,7 +62,8 @@ export default function ListenPage() {
   const [selectedGroups, setSelectedGroups] = useState(
     () => new Set(restored.selectedGroups ?? [])
   )
-  const [selectedType, setSelectedType] = useState(restored.selectedType ?? 'all')
+  const [selectedType, setSelectedType]   = useState(restored.selectedType  ?? 'all')
+  const [selectedLevel, setSelectedLevel] = useState(restored.selectedLevel ?? 'all')
 
   function toggleGroup(id) {
     setSelectedGroups((prev) => {
@@ -74,6 +76,7 @@ export default function ListenPage() {
   const queue = buildQueue(
     [...selectedGroups],
     selectedType,
+    selectedLevel,
     collections,
     customWords,
     customizations
@@ -86,6 +89,7 @@ export default function ListenPage() {
         queue,
         selectedGroups: [...selectedGroups],
         selectedType,
+        selectedLevel,
       },
     })
   }
@@ -124,6 +128,27 @@ export default function ListenPage() {
               )}
             >
               {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Level filter */}
+        <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground mb-1.5">
+          Level
+        </p>
+        <div className="flex gap-2 mb-3">
+          {['all', 'A1', 'A2', 'B1', 'B2'].map((l) => (
+            <button
+              key={l}
+              onClick={() => setSelectedLevel(l)}
+              className={cn(
+                'px-4 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200',
+                selectedLevel === l
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-card text-muted-foreground border-border hover:opacity-80'
+              )}
+            >
+              {l === 'all' ? 'All' : l}
             </button>
           ))}
         </div>

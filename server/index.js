@@ -137,11 +137,12 @@ app.post('/api/enrich', async (req, res) => {
   const prompt = `You are a French language teacher. Given this French word or phrase: "${french}"
 
 Return ONLY valid JSON with no markdown or explanation:
-{"english":"...","chinese":"..."}
+{"english":"...","chinese":"...","level":"..."}
 
 Rules:
 - english: concise English translation
-- chinese: Traditional Chinese translation`
+- chinese: Traditional Chinese translation
+- level: CEFR level — one of A1, A2, B1, B2 based on how early a French learner encounters this word`
 
   try {
     const message = await anthropic.messages.create({
@@ -258,12 +259,13 @@ app.post('/api/explore', async (req, res) => {
   const prompt = `You are a French language teacher. ${typeInstruction}${existingHint}
 
 Return ONLY valid JSON with no markdown or explanation:
-{"words":[{"french":"...","english":"...","chinese":"..."},…]}
+{"words":[{"french":"...","english":"...","chinese":"...","level":"..."},…]}
 
 Rules:
 - french: ${type === 'sentence' ? 'a complete natural French sentence' : 'the French word or phrase with article if noun'}
 - english: concise English translation
 - chinese: Traditional Chinese translation
+- level: CEFR level for each item — one of A1, A2, B1, B2
 - All ${safeCount} items must be different
 - Prefer common, everyday ${type === 'sentence' ? 'sentences' : 'vocabulary'} appropriate for learners`
 
@@ -289,11 +291,13 @@ Rules:
     }
 
     const now = Date.now()
+    const VALID_LEVELS = ['A1', 'A2', 'B1', 'B2']
     const words = parsed.words.slice(0, safeCount).map((w, i) => ({
       id:          `custom_${now + i}`,
       french:      String(w.french  ?? '').slice(0, 300),
       english:     String(w.english ?? '').slice(0, 200),
       chinese:     String(w.chinese ?? '').slice(0, 200),
+      level:       VALID_LEVELS.includes(w.level) ? w.level : undefined,
       category:    safeId,
       contentType: type,
       isCustom:    true,

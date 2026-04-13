@@ -18,6 +18,7 @@ export default function LibraryPage() {
   const { customizations } = useWordCustomizations()
   const [typeFilter, setTypeFilter]         = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [levelFilter, setLevelFilter]       = useState('all')
   const [sheetOpen, setSheetOpen]           = useState(false)
 
   const allWords = useMemo(
@@ -29,8 +30,9 @@ export default function LibraryPage() {
     return allWords
       .filter((w) => typeFilter === 'all'      || w.contentType === typeFilter)
       .filter((w) => categoryFilter === 'all'  || w.category    === categoryFilter)
+      .filter((w) => levelFilter === 'all'     || w.level       === levelFilter)
       .sort((a, b) => (b.addedAt ?? 0) - (a.addedAt ?? 0))
-  }, [allWords, typeFilter, categoryFilter])
+  }, [allWords, typeFilter, categoryFilter, levelFilter])
 
   // Only show category chips that have at least one visible word
   const activeCategoryIds = useMemo(() => {
@@ -77,6 +79,24 @@ export default function LibraryPage() {
               )}
             >
               {f.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Level filter chips */}
+        <div className="flex gap-2 px-4 pb-2 overflow-x-auto">
+          {['all', 'A1', 'A2', 'B1', 'B2'].map((l) => (
+            <button
+              key={l}
+              onClick={() => setLevelFilter(l)}
+              className={cn(
+                'shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-colors',
+                levelFilter === l
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border text-muted-foreground hover:bg-muted'
+              )}
+            >
+              {l === 'all' ? 'All Levels' : l}
             </button>
           ))}
         </div>

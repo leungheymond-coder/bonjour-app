@@ -15,6 +15,7 @@ export default function WordEditSheet({ word, onClose }) {
   const [chinese,     setChinese]     = useState(word.chinese     ?? '')
   const [contentType, setContentType] = useState(word.contentType ?? 'vocab')
   const [categoryId,  setCategoryId]  = useState(word.category    ?? categories[0]?.id ?? '')
+  const [level,       setLevel]       = useState(word.level       ?? '')
 
   useEffect(() => {
     function onKey(e) { if (e.key === 'Escape') onClose() }
@@ -31,6 +32,7 @@ export default function WordEditSheet({ word, onClose }) {
       chinese:     chinese.trim(),
       contentType,
       category:    categoryId,
+      level:       level || undefined,
     }
     if (word.isCustom) {
       updateWord(word.id, patch)
@@ -82,6 +84,28 @@ export default function WordEditSheet({ word, onClose }) {
                   )}
                 >
                   {t === 'vocab' ? 'Vocab' : 'Sentence'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Level picker */}
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Level</p>
+            <div className="flex gap-2">
+              {['A1', 'A2', 'B1', 'B2'].map((l) => (
+                <button
+                  key={l}
+                  type="button"
+                  onClick={() => setLevel((prev) => prev === l ? '' : l)}
+                  className={cn(
+                    'flex-1 py-2 rounded-lg text-xs font-semibold border transition-colors',
+                    level === l
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border text-muted-foreground hover:bg-muted'
+                  )}
+                >
+                  {l}
                 </button>
               ))}
             </div>
