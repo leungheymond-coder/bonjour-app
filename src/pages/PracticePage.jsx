@@ -121,7 +121,7 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
 
   useEffect(() => () => clearInterval(timerIntervalRef.current), [])
 
-  // Build filter chips from selected groups / type / level
+  // Build filter chips
   const filterChips = []
   for (const id of selectedGroups) {
     const cat = categories.find(c => c.id === id)
@@ -324,8 +324,22 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
         </h1>
       </div>
 
+      {/* Filter chips — horizontally scrollable */}
+      {filterChips.length > 0 && (
+        <div className="flex gap-1.5 overflow-x-auto mb-2 pb-0.5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          {filterChips.map(chip => (
+            <span
+              key={chip.key}
+              className="px-2 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 shrink-0 whitespace-nowrap"
+            >
+              {chip.label}
+            </span>
+          ))}
+        </div>
+      )}
+
       {/* Progress bar */}
-      <div className="h-1.5 bg-muted rounded-full overflow-hidden mb-2">
+      <div className="h-1.5 bg-muted rounded-full overflow-hidden mb-3">
         <div
           className="h-full rounded-full transition-all duration-300"
           style={{
@@ -336,8 +350,79 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
         />
       </div>
 
-      {/* Timer */}
-      <div className="flex items-center justify-center gap-3 mb-2">
+      {/* Hero word area — flex-1, centred */}
+      <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-2">
+
+        {/* French word — always visible, blurred until revealed */}
+        <div
+          className={cn('relative w-full text-center', !revealed && 'cursor-pointer')}
+          onClick={!revealed ? () => setRevealed(true) : undefined}
+        >
+          <p
+            className={cn(
+              'font-heading text-5xl font-bold text-foreground leading-tight transition-all duration-500',
+              !revealed && 'blur-md opacity-50 select-none'
+            )}
+          >
+            {word.french}
+          </p>
+
+          {word.phonetic && (
+            <p
+              className={cn(
+                'text-sm text-muted-foreground mt-2 tracking-wide transition-all duration-500',
+                !revealed && 'blur-sm opacity-40 select-none'
+              )}
+            >
+              {word.phonetic}
+            </p>
+          )}
+
+          {/* Tap-to-reveal overlay */}
+          {!revealed && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-sm font-semibold text-primary bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 backdrop-blur-sm">
+                Tap to reveal
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Translation card + bookmark — animates in on reveal */}
+        {revealed && (
+          <div className="w-full mt-5 card-frosted p-3.5 animate-fade-up">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col gap-1 min-w-0">
+                <p className="text-base font-semibold text-foreground">{word.english}</p>
+                <p className="text-sm text-muted-foreground">{word.chinese}</p>
+              </div>
+              <div className="relative shrink-0">
+                <button
+                  onClick={() => setSavePopoverOpen(v => !v)}
+                  aria-label="Save to folder"
+                  className={cn(
+                    'w-9 h-9 rounded-full flex items-center justify-center transition-colors duration-200 active:scale-90',
+                    isInAnyFolder(word.id)
+                      ? 'text-primary bg-primary/10'
+                      : 'text-muted-foreground hover:bg-muted'
+                  )}
+                >
+                  {isInAnyFolder(word.id)
+                    ? <BookmarkCheck className="h-5 w-5 fill-primary" />
+                    : <Bookmark className="h-5 w-5" />
+                  }
+                </button>
+                {savePopoverOpen && (
+                  <FolderPopover wordId={word.id} onClose={() => setSavePopoverOpen(false)} />
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Timer — above bottom controls */}
+      <div className="flex items-center justify-center gap-3 mb-3">
         <button
           onClick={timerRunning ? pauseTimer : startTimer}
           aria-label={timerRunning ? 'Pause timer' : 'Start timer'}
@@ -360,30 +445,11 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
         </button>
       </div>
 
-      {/* Filter chips — horizontally scrollable, hidden scrollbar */}
-      {filterChips.length > 0 && (
-        <div className="flex gap-1.5 overflow-x-auto mb-3 pb-0.5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {filterChips.map(chip => (
-            <span
-              key={chip.key}
-              className="px-2 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 shrink-0 whitespace-nowrap"
-            >
-              {chip.label}
-            </span>
-          ))}
-        </div>
-      )}
+      {/* Bottom controls */}
+      <div className="flex flex-col gap-2.5">
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 min-h-0">
-
-        {/* "Tap to hear" label */}
-        <span className={cn('text-xs text-muted-foreground', (playing || regenerating) && 'invisible')}>
-          Tap to hear
-        </span>
-
-        {/* Prev / Play / Next row */}
-        <div className="flex items-center gap-6 -mt-1">
+        {/* Prev / Play / Next */}
+        <div className="flex items-center justify-center gap-6">
           <button
             onClick={handlePrev}
             disabled={isFirst}
@@ -431,7 +497,7 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
         </div>
 
         {/* Speed selector */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center gap-2">
           <span className="text-xs text-muted-foreground shrink-0">Speed</span>
           <div className="flex gap-1.5">
             {SPEEDS.map((s) => (
@@ -450,55 +516,6 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
             ))}
           </div>
         </div>
-
-        {/* Reveal button */}
-        {!revealed && (
-          <button onClick={() => setRevealed(true)} className="btn-secondary">
-            Reveal Answer
-          </button>
-        )}
-
-        {/* Revealed word card */}
-        {revealed && (
-          <div className="w-full card-frosted p-3.5 flex flex-col gap-2 animate-fade-up">
-            <div className="flex items-start gap-2">
-              <div className="flex-1 min-w-0">
-                <p className="text-lg font-bold text-foreground leading-snug font-heading">
-                  {word.french}
-                </p>
-                {word.phonetic && (
-                  <p className="text-xs text-muted-foreground mt-0.5 tracking-wide">
-                    {word.phonetic}
-                  </p>
-                )}
-              </div>
-              <div className="relative shrink-0">
-                <button
-                  onClick={() => setSavePopoverOpen((v) => !v)}
-                  aria-label="Save to folder"
-                  className={cn(
-                    'w-9 h-9 rounded-full flex items-center justify-center transition-colors duration-200 active:scale-90',
-                    isInAnyFolder(word.id)
-                      ? 'text-primary bg-primary/10'
-                      : 'text-muted-foreground hover:bg-muted'
-                  )}
-                >
-                  {isInAnyFolder(word.id)
-                    ? <BookmarkCheck className="h-5 w-5 fill-primary" />
-                    : <Bookmark className="h-5 w-5" />
-                  }
-                </button>
-                {savePopoverOpen && (
-                  <FolderPopover wordId={word.id} onClose={() => setSavePopoverOpen(false)} />
-                )}
-              </div>
-            </div>
-            <div className="border-t border-primary/15 pt-2 flex flex-col gap-1">
-              <p className="text-sm font-semibold text-foreground">{word.english}</p>
-              <p className="text-sm text-muted-foreground">{word.chinese}</p>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Quit confirmation */}
