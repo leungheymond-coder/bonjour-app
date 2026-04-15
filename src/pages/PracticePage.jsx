@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useLocation, useNavigate, useBlocker } from 'react-router-dom'
-import { Volume2, Pause, Bookmark, BookmarkCheck, X, ChevronLeft, ChevronRight, Check, Loader2 } from 'lucide-react'
+import { Volume2, Pause, Play, RotateCcw, Bookmark, BookmarkCheck, X, ChevronLeft, ChevronRight, Check, Loader2 } from 'lucide-react'
 import { useCollections } from '@/hooks/useCollections'
 import { useCustomVocab } from '@/hooks/useCustomVocab'
 import FolderPopover from '@/components/FolderPopover'
@@ -89,6 +89,37 @@ function SessionView({ queue, selectedGroups, selectedType }) {
   const [savePopoverOpen, setSavePopoverOpen] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [quitDialogOpen, setQuitDialogOpen] = useState(false)
+
+  const [timerRunning, setTimerRunning]   = useState(false)
+  const [timerSeconds, setTimerSeconds]   = useState(0)
+  const timerIntervalRef = useRef(null)
+
+  function startTimer() {
+    timerIntervalRef.current = setInterval(() => setTimerSeconds(s => s + 1), 1000)
+    setTimerRunning(true)
+  }
+
+  function pauseTimer() {
+    clearInterval(timerIntervalRef.current)
+    timerIntervalRef.current = null
+    setTimerRunning(false)
+  }
+
+  function resetTimer() {
+    clearInterval(timerIntervalRef.current)
+    timerIntervalRef.current = null
+    setTimerRunning(false)
+    setTimerSeconds(0)
+  }
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60)
+    const sec = s % 60
+    return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
+  }
+
+  // Clean up interval on unmount
+  useEffect(() => () => clearInterval(timerIntervalRef.current), [])
 
   const audioRef = useRef(null)
   const isQuitting = useRef(false)
@@ -282,7 +313,7 @@ function SessionView({ queue, selectedGroups, selectedType }) {
       </div>
 
       {/* Progress bar */}
-      <div className="h-2.5 bg-muted rounded-full overflow-hidden mb-6">
+      <div className="h-2.5 bg-muted rounded-full overflow-hidden mb-4">
         <div
           className="h-full rounded-full transition-all duration-300"
           style={{
@@ -291,6 +322,30 @@ function SessionView({ queue, selectedGroups, selectedType }) {
             boxShadow: '0 0 8px rgba(108,71,255,0.45)',
           }}
         />
+      </div>
+
+      {/* Timer */}
+      <div className="flex items-center justify-center gap-3 mb-4">
+        <button
+          onClick={timerRunning ? pauseTimer : startTimer}
+          aria-label={timerRunning ? 'Pause timer' : 'Start timer'}
+          className="w-8 h-8 rounded-full border border-border bg-card flex items-center justify-center active:scale-90 transition-transform text-muted-foreground hover:opacity-80"
+        >
+          {timerRunning
+            ? <Pause className="h-3.5 w-3.5" />
+            : <Play className="h-3.5 w-3.5" />
+          }
+        </button>
+        <span className="text-2xl font-mono font-semibold text-foreground tabular-nums w-20 text-center">
+          {formatTime(timerSeconds)}
+        </span>
+        <button
+          onClick={resetTimer}
+          aria-label="Reset timer"
+          className="w-8 h-8 rounded-full border border-border bg-card flex items-center justify-center active:scale-90 transition-transform text-muted-foreground hover:opacity-80"
+        >
+          <RotateCcw className="h-3.5 w-3.5" />
+        </button>
       </div>
 
       {/* Main content */}
