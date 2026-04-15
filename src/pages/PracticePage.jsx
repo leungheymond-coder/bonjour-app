@@ -6,6 +6,7 @@ import { useCustomVocab } from '@/hooks/useCustomVocab'
 import FolderPopover from '@/components/FolderPopover'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { cn } from '@/lib/utils'
+import { categories } from '@/data/vocabulary'
 
 const SPEEDS = [
   { value: 0.75, label: '0.75×' },
@@ -15,7 +16,7 @@ const SPEEDS = [
 
 // ─── Success screen ───────────────────────────────────────────────────────────
 
-function SuccessScreen({ queue, selectedGroups, selectedType }) {
+function SuccessScreen({ queue, selectedGroups, selectedType, selectedLevel }) {
   const navigate = useNavigate()
   const [reshuffled, setReshuffled] = useState(null)
 
@@ -34,6 +35,7 @@ function SuccessScreen({ queue, selectedGroups, selectedType }) {
         queue={reshuffled}
         selectedGroups={selectedGroups}
         selectedType={selectedType}
+        selectedLevel={selectedLevel}
       />
     )
   }
@@ -75,10 +77,9 @@ function SuccessScreen({ queue, selectedGroups, selectedType }) {
 
 // ─── Session view ─────────────────────────────────────────────────────────────
 
-function SessionView({ queue, selectedGroups, selectedType }) {
+function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
   const navigate = useNavigate()
-  const { isInAnyFolder } = useCollections()
-
+  const { isInAnyFolder, activeFolders } = useCollections()
   const { updateWord } = useCustomVocab()
 
   const [index, setIndex]       = useState(0)
@@ -90,8 +91,8 @@ function SessionView({ queue, selectedGroups, selectedType }) {
   const [showSuccess, setShowSuccess] = useState(false)
   const [quitDialogOpen, setQuitDialogOpen] = useState(false)
 
-  const [timerRunning, setTimerRunning]   = useState(false)
-  const [timerSeconds, setTimerSeconds]   = useState(0)
+  const [timerRunning, setTimerRunning] = useState(false)
+  const [timerSeconds, setTimerSeconds] = useState(0)
   const timerIntervalRef = useRef(null)
 
   function startTimer() {
@@ -118,8 +119,23 @@ function SessionView({ queue, selectedGroups, selectedType }) {
     return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
   }
 
-  // Clean up interval on unmount
   useEffect(() => () => clearInterval(timerIntervalRef.current), [])
+
+  // Build filter chips from selected groups / type / level
+  const filterChips = []
+  for (const id of selectedGroups) {
+    const cat = categories.find(c => c.id === id)
+    if (cat) {
+      filterChips.push({ key: id, label: `${cat.emoji} ${cat.label}` })
+    } else if (id === 'favourites') {
+      filterChips.push({ key: id, label: '⭐ Favourites' })
+    } else {
+      const folder = activeFolders.find(f => f.id === id)
+      if (folder) filterChips.push({ key: id, label: `📁 ${folder.name}` })
+    }
+  }
+  if (selectedType !== 'all') filterChips.push({ key: 'type', label: selectedType === 'vocab' ? 'Vocab' : 'Sentences' })
+  if (selectedLevel && selectedLevel !== 'all') filterChips.push({ key: 'level', label: selectedLevel })
 
   const audioRef = useRef(null)
   const isQuitting = useRef(false)
@@ -141,8 +157,8 @@ function SessionView({ queue, selectedGroups, selectedType }) {
     cancelledRef.current = true
     if (audioRef.current) {
       const audio = audioRef.current
-      audioRef.current = null  // null ref first so stale handlers see null
-      audio.onended = null     // detach handlers before pausing to prevent async callbacks
+      audioRef.current = null
+      audio.onended = null
       audio.onerror = null
       audio.pause()
     }
@@ -193,10 +209,8 @@ function SessionView({ queue, selectedGroups, selectedType }) {
     if (word.isCustom) {
       const targetPath = `/custom-audio/${word.id}.mp3`
       if (!word.audioPath) {
-        // audioPath is null — generate before playing
         regenerateAndPlay(targetPath)
       } else {
-        // audioPath set — try playing, regenerate on 404
         const audio = new Audio(word.audioPath)
         audio.playbackRate = speed
         audioRef.current = audio
@@ -224,7 +238,6 @@ function SessionView({ queue, selectedGroups, selectedType }) {
     setIndex(newIndex)
     setRevealed(false)
     setSavePopoverOpen(false)
-    window.scrollTo(0, 0)
   }
 
   function handlePrev() {
@@ -240,7 +253,6 @@ function SessionView({ queue, selectedGroups, selectedType }) {
     }
   }
 
-  // Keyboard shortcuts — use a ref so the effect never needs to re-register
   const keyHandlersRef = useRef({})
   keyHandlersRef.current = { handlePrev, handleNext, handlePlay, setRevealed }
 
@@ -256,7 +268,6 @@ function SessionView({ queue, selectedGroups, selectedType }) {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-play when landing on a new word (also fires on session start)
   useEffect(() => {
     handlePlay()
   }, [index]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -283,6 +294,7 @@ function SessionView({ queue, selectedGroups, selectedType }) {
         queue={queue}
         selectedGroups={selectedGroups}
         selectedType={selectedType}
+        selectedLevel={selectedLevel}
       />
     )
   }
@@ -293,10 +305,10 @@ function SessionView({ queue, selectedGroups, selectedType }) {
   const progress = ((index + 1) / queue.length) * 100
 
   return (
-    <div className="flex flex-col min-h-[calc(100svh-0px)] p-4">
+    <div className="h-[100svh] overflow-hidden flex flex-col p-4">
 
       {/* Header: X + title */}
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-3 mb-2">
         <button
           onClick={() => setQuitDialogOpen(true)}
           aria-label="Quit practice"
@@ -313,7 +325,7 @@ function SessionView({ queue, selectedGroups, selectedType }) {
       </div>
 
       {/* Progress bar */}
-      <div className="h-2.5 bg-muted rounded-full overflow-hidden mb-4">
+      <div className="h-1.5 bg-muted rounded-full overflow-hidden mb-2">
         <div
           className="h-full rounded-full transition-all duration-300"
           style={{
@@ -325,7 +337,7 @@ function SessionView({ queue, selectedGroups, selectedType }) {
       </div>
 
       {/* Timer */}
-      <div className="flex items-center justify-center gap-3 mb-4">
+      <div className="flex items-center justify-center gap-3 mb-2">
         <button
           onClick={timerRunning ? pauseTimer : startTimer}
           aria-label={timerRunning ? 'Pause timer' : 'Start timer'}
@@ -348,16 +360,30 @@ function SessionView({ queue, selectedGroups, selectedType }) {
         </button>
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-5">
+      {/* Filter chips — horizontally scrollable, hidden scrollbar */}
+      {filterChips.length > 0 && (
+        <div className="flex gap-1.5 overflow-x-auto mb-3 pb-0.5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          {filterChips.map(chip => (
+            <span
+              key={chip.key}
+              className="px-2 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 shrink-0 whitespace-nowrap"
+            >
+              {chip.label}
+            </span>
+          ))}
+        </div>
+      )}
 
-        {/* "Tap to hear" label — above the button row */}
+      {/* Main content */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 min-h-0">
+
+        {/* "Tap to hear" label */}
         <span className={cn('text-xs text-muted-foreground', (playing || regenerating) && 'invisible')}>
           Tap to hear
         </span>
 
-        {/* Prev / Play / Next row — all three circles align */}
-        <div className="flex items-center gap-6 -mt-3">
+        {/* Prev / Play / Next row */}
+        <div className="flex items-center gap-6 -mt-1">
           <button
             onClick={handlePrev}
             disabled={isFirst}
@@ -434,14 +460,14 @@ function SessionView({ queue, selectedGroups, selectedType }) {
 
         {/* Revealed word card */}
         {revealed && (
-          <div className="w-full card-frosted p-5 flex flex-col gap-3 animate-fade-up">
+          <div className="w-full card-frosted p-3.5 flex flex-col gap-2 animate-fade-up">
             <div className="flex items-start gap-2">
               <div className="flex-1 min-w-0">
-                <p className="text-xl font-bold text-foreground leading-snug font-heading">
+                <p className="text-lg font-bold text-foreground leading-snug font-heading">
                   {word.french}
                 </p>
                 {word.phonetic && (
-                  <p className="text-sm text-muted-foreground mt-1 tracking-wide">
+                  <p className="text-xs text-muted-foreground mt-0.5 tracking-wide">
                     {word.phonetic}
                   </p>
                 )}
@@ -451,7 +477,7 @@ function SessionView({ queue, selectedGroups, selectedType }) {
                   onClick={() => setSavePopoverOpen((v) => !v)}
                   aria-label="Save to folder"
                   className={cn(
-                    'w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 active:scale-90',
+                    'w-9 h-9 rounded-full flex items-center justify-center transition-colors duration-200 active:scale-90',
                     isInAnyFolder(word.id)
                       ? 'text-primary bg-primary/10'
                       : 'text-muted-foreground hover:bg-muted'
@@ -467,9 +493,9 @@ function SessionView({ queue, selectedGroups, selectedType }) {
                 )}
               </div>
             </div>
-            <div className="border-t border-primary/15 pt-3 flex flex-col gap-1.5">
-              <p className="text-base font-semibold text-foreground">{word.english}</p>
-              <p className="text-base text-muted-foreground">{word.chinese}</p>
+            <div className="border-t border-primary/15 pt-2 flex flex-col gap-1">
+              <p className="text-sm font-semibold text-foreground">{word.english}</p>
+              <p className="text-sm text-muted-foreground">{word.chinese}</p>
             </div>
           </div>
         )}
@@ -495,7 +521,7 @@ function SessionView({ queue, selectedGroups, selectedType }) {
 export default function PracticePage() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { queue = [], selectedGroups = [], selectedType = 'all' } = location.state ?? {}
+  const { queue = [], selectedGroups = [], selectedType = 'all', selectedLevel = 'all' } = location.state ?? {}
 
   useEffect(() => {
     if (queue.length === 0) navigate('/listen', { replace: true })
@@ -508,6 +534,7 @@ export default function PracticePage() {
       queue={queue}
       selectedGroups={selectedGroups}
       selectedType={selectedType}
+      selectedLevel={selectedLevel}
     />
   )
 }
