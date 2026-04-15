@@ -326,7 +326,7 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
 
       {/* Filter chips — horizontally scrollable */}
       {filterChips.length > 0 && (
-        <div className="flex gap-1.5 overflow-x-auto py-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex gap-1.5 overflow-x-auto pt-0 pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {filterChips.map(chip => (
             <span
               key={chip.key}
@@ -358,6 +358,7 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
 
         {/* French word — always visible, blurred until revealed */}
         <div
+          key={index}
           className={cn('relative w-full text-center', !revealed && 'cursor-pointer')}
           onClick={!revealed ? () => setRevealed(true) : undefined}
         >
@@ -517,8 +518,13 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
           <button
             onClick={handleNext}
             aria-label={isLast ? 'Finish practice' : 'Next word'}
-            className="w-12 h-[52px] rounded-[14px] flex items-center justify-center transition-all duration-200 active:scale-90 text-white shrink-0"
-            style={{ background: 'var(--btn-primary-gradient)', boxShadow: '0 2px 10px rgba(123,92,196,0.45)' }}
+            className="w-12 h-[52px] rounded-[14px] flex items-center justify-center transition-all duration-200 active:scale-90 text-primary shrink-0"
+            style={{
+              background: 'rgba(155, 128, 224, 0.12)',
+              border: '1.5px solid rgba(155, 128, 224, 0.40)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+            }}
           >
             {isLast ? <Check className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
           </button>
