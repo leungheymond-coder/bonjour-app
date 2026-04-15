@@ -316,9 +316,9 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
         >
           <X className="h-4 w-4 text-muted-foreground" />
         </button>
-        <h1 className="text-2xl font-bold text-foreground font-heading">
+        <h1 className="font-heading font-bold text-foreground" style={{ fontSize: '32px' }}>
           Practice{' '}
-          <span className="text-muted-foreground font-normal text-xl">
+          <span className="text-[18px] font-normal text-muted-foreground">
             ({index + 1}/{queue.length})
           </span>
         </h1>
@@ -326,11 +326,11 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
 
       {/* Filter chips — horizontally scrollable */}
       {filterChips.length > 0 && (
-        <div className="flex gap-1.5 overflow-x-auto mb-2 pb-0.5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex gap-1.5 overflow-x-auto py-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {filterChips.map(chip => (
             <span
               key={chip.key}
-              className="px-2 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 shrink-0 whitespace-nowrap"
+              className="px-[9px] py-[3px] rounded-full text-[11px] font-semibold bg-primary/[0.13] text-primary border border-primary/[0.28] shrink-0 whitespace-nowrap"
             >
               {chip.label}
             </span>
@@ -339,7 +339,7 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
       )}
 
       {/* Progress bar */}
-      <div className="h-1.5 bg-muted rounded-full overflow-hidden mb-3">
+      <div className="h-2 bg-muted rounded-full overflow-hidden mb-3">
         <div
           className="h-full rounded-full transition-all duration-300"
           style={{
@@ -351,7 +351,10 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
       </div>
 
       {/* Hero word area — flex-1, centred */}
-      <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-2">
+      <div className={cn(
+        'flex-1 flex flex-col items-center justify-center min-h-0 px-2',
+        revealed ? 'gap-6' : 'gap-4'
+      )}>
 
         {/* French word — always visible, blurred until revealed */}
         <div
@@ -360,9 +363,10 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
         >
           <p
             className={cn(
-              'font-heading text-5xl font-bold text-foreground leading-tight transition-all duration-500',
+              'font-heading font-black text-foreground leading-tight transition-all duration-500',
               !revealed && 'blur-md opacity-50 select-none'
             )}
+            style={{ fontSize: '52px' }}
           >
             {word.french}
           </p>
@@ -381,7 +385,7 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
           {/* Tap-to-reveal overlay */}
           {!revealed && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-sm font-semibold text-primary bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 backdrop-blur-sm">
+              <span className="text-[14px] font-semibold text-primary bg-primary/[0.13] border border-primary/[0.28] rounded-full px-4 py-2 backdrop-blur-sm">
                 Tap to reveal
               </span>
             </div>
@@ -390,72 +394,98 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
 
         {/* Translation card + bookmark — animates in on reveal */}
         {revealed && (
-          <div className="w-full mt-5 card-frosted p-3.5 animate-fade-up">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex flex-col gap-1 min-w-0">
-                <p className="text-base font-semibold text-foreground">{word.english}</p>
-                <p className="text-sm text-muted-foreground">{word.chinese}</p>
-              </div>
-              <div className="relative shrink-0">
-                <button
-                  onClick={() => setSavePopoverOpen(v => !v)}
-                  aria-label="Save to folder"
-                  className={cn(
-                    'w-9 h-9 rounded-full flex items-center justify-center transition-colors duration-200 active:scale-90',
-                    isInAnyFolder(word.id)
-                      ? 'text-primary bg-primary/10'
-                      : 'text-muted-foreground hover:bg-muted'
-                  )}
-                >
-                  {isInAnyFolder(word.id)
-                    ? <BookmarkCheck className="h-5 w-5 fill-primary" />
-                    : <Bookmark className="h-5 w-5" />
-                  }
-                </button>
-                {savePopoverOpen && (
-                  <FolderPopover wordId={word.id} onClose={() => setSavePopoverOpen(false)} />
+          <div
+            className="w-full card-frosted animate-fade-up flex items-center justify-between gap-3"
+            style={{ padding: '13px 15px' }}
+          >
+            <div className="flex flex-col min-w-0" style={{ gap: '3px' }}>
+              <p className="font-semibold text-foreground" style={{ fontSize: '15px' }}>{word.english}</p>
+              <p className="text-muted-foreground" style={{ fontSize: '13px' }}>{word.chinese}</p>
+            </div>
+            <div className="relative shrink-0">
+              <button
+                onClick={() => setSavePopoverOpen(v => !v)}
+                aria-label="Save to folder"
+                className={cn(
+                  'flex items-center justify-center transition-colors duration-200 active:scale-90',
+                  isInAnyFolder(word.id)
+                    ? 'text-primary bg-primary/10'
+                    : 'text-muted-foreground hover:bg-muted'
                 )}
-              </div>
+                style={{ width: '34px', height: '34px', borderRadius: '17px' }}
+              >
+                {isInAnyFolder(word.id)
+                  ? <BookmarkCheck className="h-5 w-5 fill-primary" />
+                  : <Bookmark className="h-5 w-5" />
+                }
+              </button>
+              {savePopoverOpen && (
+                <FolderPopover wordId={word.id} onClose={() => setSavePopoverOpen(false)} />
+              )}
             </div>
           </div>
         )}
       </div>
 
-      {/* Timer — above bottom controls */}
-      <div className="flex items-center justify-center gap-3 mb-3">
-        <button
-          onClick={timerRunning ? pauseTimer : startTimer}
-          aria-label={timerRunning ? 'Pause timer' : 'Start timer'}
-          className="w-8 h-8 rounded-full border border-border bg-card flex items-center justify-center active:scale-90 transition-transform text-muted-foreground hover:opacity-80"
-        >
-          {timerRunning
-            ? <Pause className="h-3.5 w-3.5" />
-            : <Play className="h-3.5 w-3.5" />
-          }
-        </button>
-        <span className="text-2xl font-mono font-semibold text-foreground tabular-nums w-20 text-center">
-          {formatTime(timerSeconds)}
-        </span>
-        <button
-          onClick={resetTimer}
-          aria-label="Reset timer"
-          className="w-8 h-8 rounded-full border border-border bg-card flex items-center justify-center active:scale-90 transition-transform text-muted-foreground hover:opacity-80"
-        >
-          <RotateCcw className="h-3.5 w-3.5" />
-        </button>
-      </div>
+      {/* Controls — timer / speed / play — all in one column */}
+      <div className="flex flex-col gap-5">
 
-      {/* Bottom controls */}
-      <div className="flex flex-col gap-2.5">
+        {/* Timer */}
+        <div className="flex items-center justify-center gap-3">
+          <button
+            onClick={timerRunning ? pauseTimer : startTimer}
+            aria-label={timerRunning ? 'Pause timer' : 'Start timer'}
+            className="w-8 h-8 rounded-full border border-border bg-card flex items-center justify-center active:scale-90 transition-transform text-muted-foreground hover:opacity-80"
+          >
+            {timerRunning
+              ? <Pause className="h-3.5 w-3.5" />
+              : <Play className="h-3.5 w-3.5" />
+            }
+          </button>
+          <span
+            className="font-mono font-semibold text-foreground tabular-nums w-20 text-center"
+            style={{ fontSize: '24px', letterSpacing: '1.2px' }}
+          >
+            {formatTime(timerSeconds)}
+          </span>
+          <button
+            onClick={resetTimer}
+            aria-label="Reset timer"
+            className="w-8 h-8 rounded-full border border-border bg-card flex items-center justify-center active:scale-90 transition-transform text-muted-foreground hover:opacity-80"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+          </button>
+        </div>
 
-        {/* Prev / Play / Next */}
-        <div className="flex items-center justify-center gap-6">
+        {/* Speed */}
+        <div className="flex items-center justify-center gap-2">
+          <span className="text-xs text-muted-foreground shrink-0">Speed</span>
+          <div className="flex gap-1.5">
+            {SPEEDS.map((s) => (
+              <button
+                key={s.value}
+                onClick={() => handleSpeedChange(s.value)}
+                className={cn(
+                  'h-7 rounded-md border px-3 text-xs font-semibold transition-all duration-200',
+                  speed === s.value
+                    ? 'bg-[rgba(169,136,248,0.28)] border-[rgba(169,136,248,0.7)] text-primary font-bold'
+                    : 'card-frosted text-muted-foreground hover:opacity-80'
+                )}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Prev / Play pill / Next */}
+        <div className="flex items-center gap-3">
           <button
             onClick={handlePrev}
             disabled={isFirst}
             aria-label="Previous word"
             className={cn(
-              'w-12 h-12 rounded-full flex items-center justify-center border transition-all duration-200 active:scale-90',
+              'w-12 h-[52px] rounded-[14px] flex items-center justify-center border transition-all duration-200 active:scale-90 shrink-0',
               isFirst
                 ? 'border-border text-muted-foreground/30 bg-card cursor-not-allowed'
                 : 'border-border text-muted-foreground bg-card hover:opacity-80'
@@ -468,54 +498,32 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
             onClick={handlePlay}
             disabled={regenerating}
             aria-label={playing ? `Stop ${word.french}` : `Play ${word.french}`}
-            className="active:scale-95 transition-all duration-200"
+            className={cn(
+              'flex-1 h-[52px] rounded-full flex items-center justify-center gap-2 text-white font-bold text-sm transition-all duration-200 active:scale-[0.98]',
+              playing
+                ? 'bg-[rgba(123,92,196,0.35)] border border-[rgba(169,136,248,0.4)]'
+                : 'shadow-[0px_4px_18px_0px_rgba(123,92,196,0.5)]'
+            )}
+            style={!playing ? { background: 'var(--btn-primary-gradient)' } : {}}
           >
-            <span
-              className={cn(
-                'flex items-center justify-center w-20 h-20 rounded-full text-white shadow-lg transition-all',
-                playing && 'animate-pulse-ring'
-              )}
-              style={{ background: 'var(--btn-primary-gradient)', boxShadow: 'var(--btn-primary-shadow)' }}
-            >
-              {regenerating
-                ? <Loader2 className="h-8 w-8 animate-spin" />
-                : playing
-                  ? <Pause className="h-8 w-8" />
-                  : <Volume2 className="h-8 w-8" />
-              }
-            </span>
+            {regenerating
+              ? <Loader2 className="h-5 w-5 animate-spin" />
+              : playing
+                ? <><Pause className="h-5 w-5" /><span>Stop</span></>
+                : <><Volume2 className="h-5 w-5" /><span>Play</span></>
+            }
           </button>
 
           <button
             onClick={handleNext}
             aria-label={isLast ? 'Finish practice' : 'Next word'}
-            className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90 text-white"
-            style={{ background: 'var(--btn-primary-gradient)', boxShadow: 'var(--btn-primary-shadow)' }}
+            className="w-12 h-[52px] rounded-[14px] flex items-center justify-center transition-all duration-200 active:scale-90 text-white shrink-0"
+            style={{ background: 'var(--btn-primary-gradient)', boxShadow: '0 2px 10px rgba(123,92,196,0.45)' }}
           >
             {isLast ? <Check className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
           </button>
         </div>
 
-        {/* Speed selector */}
-        <div className="flex items-center justify-center gap-2">
-          <span className="text-xs text-muted-foreground shrink-0">Speed</span>
-          <div className="flex gap-1.5">
-            {SPEEDS.map((s) => (
-              <button
-                key={s.value}
-                onClick={() => handleSpeedChange(s.value)}
-                className={cn(
-                  'rounded-md border px-3 py-1 text-xs font-semibold transition-all duration-200',
-                  speed === s.value
-                    ? 'btn-primary !w-auto !py-1 !px-3 !text-xs'
-                    : 'card-frosted text-muted-foreground hover:opacity-80'
-                )}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Quit confirmation */}
