@@ -67,11 +67,14 @@ export function useCollections() {
     return Object.values(collections).some((f) => f.ids.includes(wordId))
   }
 
+  // Mutators read _getSnapshot() at call time so sequential calls within the
+  // same render compose correctly (e.g. setFolderName followed by toggleInFolder).
   function toggleInFolder(folderId, wordId) {
-    const folder = collections[folderId]
+    const current = _getSnapshot()
+    const folder = current[folderId]
     if (!folder) return
     _setStore({
-      ...collections,
+      ...current,
       [folderId]: {
         ...folder,
         ids: folder.ids.includes(wordId)
@@ -82,21 +85,24 @@ export function useCollections() {
   }
 
   function setFolderName(folderId, name) {
-    const folder = collections[folderId]
+    const current = _getSnapshot()
+    const folder = current[folderId]
     if (!folder || folder.fixed) return
-    _setStore({ ...collections, [folderId]: { ...folder, name: name.trim() || null } })
+    _setStore({ ...current, [folderId]: { ...folder, name: name.trim() || null } })
   }
 
   function deleteFolder(folderId) {
-    const folder = collections[folderId]
+    const current = _getSnapshot()
+    const folder = current[folderId]
     if (!folder || folder.fixed) return
-    _setStore({ ...collections, [folderId]: { name: null, fixed: false, ids: [] } })
+    _setStore({ ...current, [folderId]: { name: null, fixed: false, ids: [] } })
   }
 
   // Remove a word id from all folders (called when a word is deleted)
   function removeWordFromAll(wordId) {
+    const current = _getSnapshot()
     const next = {}
-    for (const [id, folder] of Object.entries(collections)) {
+    for (const [id, folder] of Object.entries(current)) {
       next[id] = { ...folder, ids: folder.ids.filter((i) => i !== wordId) }
     }
     _setStore(next)
