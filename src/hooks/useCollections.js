@@ -3,11 +3,17 @@ import { useSyncExternalStore } from 'react'
 const STORAGE_KEY = 'bonjour_collections'
 const LEGACY_KEY  = 'bonjour_favourites'
 
+const MAX_USER_FOLDERS = 9
+const USER_FOLDER_IDS = Array.from({ length: MAX_USER_FOLDERS }, (_, i) => `folder_${i + 1}`)
+
 const DEFAULT_STATE = {
-  favourites: { name: 'Favourites', fixed: true,  ids: [] },
-  folder_1:   { name: null,         fixed: false, ids: [] },
-  folder_2:   { name: null,         fixed: false, ids: [] },
+  favourites: { name: 'Favourites', fixed: true, ids: [] },
+  ...Object.fromEntries(
+    USER_FOLDER_IDS.map((id) => [id, { name: null, fixed: false, ids: [] }])
+  ),
 }
+
+export { USER_FOLDER_IDS }
 
 let _cache = null
 const _listeners = new Set()
@@ -17,7 +23,8 @@ function _getSnapshot() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
-      _cache = JSON.parse(stored)
+      // Merge in any new default slots that didn't exist when the state was saved
+      _cache = { ...DEFAULT_STATE, ...JSON.parse(stored) }
     } else {
       // Migrate from legacy bonjour_favourites
       const legacy = localStorage.getItem(LEGACY_KEY)

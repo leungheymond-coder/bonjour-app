@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ChevronLeft, FolderPlus, Pencil, Trash2, Check, X } from 'lucide-react'
 import { vocabulary } from '@/data/vocabulary'
 import { useCustomVocab } from '@/hooks/useCustomVocab'
-import { useCollections } from '@/hooks/useCollections'
+import { useCollections, USER_FOLDER_IDS } from '@/hooks/useCollections'
 import { useWordCustomizations, applyCustomizations } from '@/hooks/useWordCustomizations'
 import WordCard from '@/components/WordCard'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -127,7 +127,7 @@ export default function CollectionsPage() {
   const allWords = applyCustomizations([...vocabulary, ...customWords], customizations)
 
   // Find the next available uncreated folder slot
-  const emptySlot = ['folder_1', 'folder_2'].find(
+  const emptySlot = USER_FOLDER_IDS.find(
     (id) => collections[id]?.name === null
   )
 
