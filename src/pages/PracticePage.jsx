@@ -367,7 +367,13 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
               'font-heading font-black text-foreground leading-tight transition-all duration-500',
               !revealed && 'blur-md opacity-50 select-none'
             )}
-            style={{ fontSize: '52px' }}
+            style={{
+              fontSize:
+                word.french.length <= 20 ? '48px' :
+                word.french.length <= 40 ? '40px' :
+                word.french.length <= 70 ? '30px' :
+                '24px',
+            }}
           >
             {word.french}
           </p>
