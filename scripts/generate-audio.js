@@ -24,8 +24,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 async function generateAudio(word) {
   const outPath = join(outputDir, `${word.id}.mp3`)
   if (existsSync(outPath)) {
-    console.log(`  skip  ${word.id} (${word.french})`)
-    return
+    return false
   }
   const mp3 = await openai.audio.speech.create({
     model: 'gpt-4o-mini-tts',
@@ -37,6 +36,7 @@ async function generateAudio(word) {
   const buffer = Buffer.from(await mp3.arrayBuffer())
   writeFileSync(outPath, buffer)
   console.log(`  ✓     ${word.id} (${word.french})`)
+  return true
 }
 
 async function main() {
@@ -49,18 +49,23 @@ async function main() {
   let done = 0
   const failed = []
 
+  let skipped = 0
   for (const word of vocabulary) {
     try {
-      await generateAudio(word)
-      done++
-      // ~3 req/sec — well within OpenAI TTS rate limit
-      await sleep(350)
+      const generated = await generateAudio(word)
+      if (generated) {
+        done++
+        await sleep(350) // ~3 req/sec, only rate-limit actual API calls
+      } else {
+        skipped++
+      }
     } catch (err) {
       console.error(`  ✗     ${word.id} (${word.french}): ${err.message}`)
       failed.push(word.id)
       await sleep(1000) // back off on error
     }
   }
+  if (skipped > 0) console.log(`  (${skipped} skipped — already exist)`)
 
   console.log(`\nDone: ${done} generated, ${failed.length} failed`)
   if (failed.length > 0) {
