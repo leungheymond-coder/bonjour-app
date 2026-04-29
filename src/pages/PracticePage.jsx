@@ -16,29 +16,8 @@ const SPEEDS = [
 
 // ─── Success screen ───────────────────────────────────────────────────────────
 
-function SuccessScreen({ queue, selectedGroups, selectedType, selectedLevel }) {
+function SuccessScreen({ queueLength, selectedGroups, selectedType, onPracticeAgain }) {
   const navigate = useNavigate()
-  const [reshuffled, setReshuffled] = useState(null)
-
-  function handlePracticeAgain() {
-    const arr = [...queue]
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[arr[i], arr[j]] = [arr[j], arr[i]]
-    }
-    setReshuffled(arr)
-  }
-
-  if (reshuffled) {
-    return (
-      <SessionView
-        queue={reshuffled}
-        selectedGroups={selectedGroups}
-        selectedType={selectedType}
-        selectedLevel={selectedLevel}
-      />
-    )
-  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100svh-0px)] p-6 text-center gap-6">
@@ -48,7 +27,7 @@ function SuccessScreen({ queue, selectedGroups, selectedType, selectedLevel }) {
         <h1 className="text-2xl font-bold text-foreground font-heading">C'est parfait !</h1>
         <p className="text-sm text-primary font-medium mt-1">That's perfect!</p>
         <p className="text-sm text-muted-foreground mt-3 leading-relaxed max-w-xs">
-          You just practiced {queue.length} French word{queue.length === 1 ? '' : 's'}.
+          You just practiced {queueLength} French word{queueLength === 1 ? '' : 's'}.
           Keep going — Paris won't learn itself!
         </p>
       </div>
@@ -61,7 +40,7 @@ function SuccessScreen({ queue, selectedGroups, selectedType, selectedLevel }) {
       </div>
 
       <div className="flex flex-col gap-3 w-full">
-        <button onClick={handlePracticeAgain} className="btn-primary">
+        <button onClick={onPracticeAgain} className="btn-primary">
           Practice Again 🔁
         </button>
         <button
@@ -77,7 +56,7 @@ function SuccessScreen({ queue, selectedGroups, selectedType, selectedLevel }) {
 
 // ─── Session view ─────────────────────────────────────────────────────────────
 
-function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
+function SessionView({ queue, selectedGroups, selectedType, selectedLevel, onPracticeAgain }) {
   const navigate = useNavigate()
   const { isInAnyFolder, activeFolders } = useCollections()
   const { updateWord } = useCustomVocab()
@@ -120,6 +99,17 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
   }
 
   useEffect(() => () => clearInterval(timerIntervalRef.current), [])
+
+  useEffect(() => () => {
+    cancelledRef.current = true
+    if (audioRef.current) {
+      const audio = audioRef.current
+      audioRef.current = null
+      audio.onended = null
+      audio.onerror = null
+      audio.pause()
+    }
+  }, [])
 
   // Build filter chips
   const filterChips = []
@@ -291,10 +281,10 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel }) {
   if (showSuccess) {
     return (
       <SuccessScreen
-        queue={queue}
+        queueLength={queue.length}
         selectedGroups={selectedGroups}
         selectedType={selectedType}
-        selectedLevel={selectedLevel}
+        onPracticeAgain={onPracticeAgain}
       />
     )
   }
@@ -560,18 +550,33 @@ export default function PracticePage() {
   const navigate = useNavigate()
   const { queue = [], selectedGroups = [], selectedType = 'all', selectedLevel = 'all' } = location.state ?? {}
 
+  const [activeQueue, setActiveQueue] = useState(queue)
+  const [restartKey, setRestartKey] = useState(0)
+
   useEffect(() => {
     if (queue.length === 0) navigate('/listen', { replace: true })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handlePracticeAgain() {
+    const arr = [...activeQueue]
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[arr[i], arr[j]] = [arr[j], arr[i]]
+    }
+    setActiveQueue(arr)
+    setRestartKey(k => k + 1)
+  }
 
   if (queue.length === 0) return null
 
   return (
     <SessionView
-      queue={queue}
+      key={restartKey}
+      queue={activeQueue}
       selectedGroups={selectedGroups}
       selectedType={selectedType}
       selectedLevel={selectedLevel}
+      onPracticeAgain={handlePracticeAgain}
     />
   )
 }
