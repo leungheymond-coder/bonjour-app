@@ -169,7 +169,7 @@ export default function ListenPage() {
                   : 'bg-card text-muted-foreground border-border hover:opacity-80'
               )}
             >
-              {selectedGroups.has(g.id) ? `✓ ${g.label}` : g.label}
+              {g.label}
             </button>
           ))}
         </div>
@@ -190,9 +190,7 @@ export default function ListenPage() {
                   : 'bg-card text-muted-foreground border-border hover:opacity-80'
               )}
             >
-              {selectedGroups.has(cat.id)
-                ? `✓ ${cat.emoji} ${cat.label}`
-                : `${cat.emoji} ${cat.label}`}
+              {`${cat.emoji} ${cat.label}`}
             </button>
           ))}
         </div>
