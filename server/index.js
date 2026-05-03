@@ -256,18 +256,30 @@ app.post('/api/explore', async (req, res) => {
   const safeLevel = VALID_LEVELS.includes(level) ? level : null
   const safeCount = Math.min(Math.max(parseInt(count, 10) || 5, 1), 10)
 
-  const safeExisting = Array.isArray(existingWords)
-    ? existingWords
-        .filter((w) => typeof w === 'string')
-        .slice(0, 100)
-        .map((w) => w.slice(0, 100).replace(/"/g, '\u2019'))
-    : []
-  const existingHint = safeExisting.length > 0
-    ? `\n\nAvoid these already in the library: ${safeExisting.join(', ')}`
+  // Accept either string[] or {french, english}[] for richer exclusion context
+  const rawExisting = Array.isArray(existingWords) ? existingWords : []
+  const existingItems = rawExisting
+    .filter((w) => typeof w === 'string' || (w && typeof w.french === 'string'))
+    .slice(0, 100)
+    .map((w) => {
+      if (typeof w === 'string') return { french: w.slice(0, 100).replace(/"/g, '\u2019'), english: '' }
+      return {
+        french:  String(w.french  ?? '').slice(0, 100).replace(/"/g, '\u2019'),
+        english: String(w.english ?? '').slice(0,  80).replace(/"/g, '\u2019'),
+      }
+    })
+  // Set of lowercased French text used for server-side dedup after generation
+  const existingFrenchSet = new Set(existingItems.map((w) => w.french.toLowerCase().trim()))
+
+  const existingHint = existingItems.length > 0
+    ? `\n\nDO NOT return any of the following — they are already in the library. If you would have included one, replace it with a completely different word:\n${existingItems.map((w) => w.english ? `"${w.french}" (${w.english})` : `"${w.french}"`).join(', ')}`
     : ''
 
   const safeLabel = categoryLabel.replace(/"/g, '\u2019')
   const safeId    = categoryId.replace(/[^a-zA-Z0-9_\-]/g, '')
+
+  // Ask for safeCount + 3 so we have buffer to absorb any duplicates that slip through
+  const requestCount = safeCount + 3
 
   const levelDescriptions = {
     A1: 'absolute beginner (most common, basic everyday words a total beginner learns first)',
@@ -280,8 +292,8 @@ app.post('/api/explore', async (req, res) => {
     : ''
 
   const typeInstruction = type === 'sentence'
-    ? `Generate exactly ${safeCount} unique, natural French sentences related to the category "${safeLabel}" (${safeId}). Each sentence should be a complete, everyday sentence a learner would find useful.${levelHint}`
-    : `Generate exactly ${safeCount} unique French words or short phrases for the category "${safeLabel}" (${safeId}). Include article if noun (e.g. "le pain").${levelHint}`
+    ? `Generate exactly ${requestCount} unique, natural French sentences related to the category "${safeLabel}" (${safeId}). Each sentence should be a complete, everyday sentence a learner would find useful.${levelHint}`
+    : `Generate exactly ${requestCount} unique French words or short phrases for the category "${safeLabel}" (${safeId}). Include article if noun (e.g. "le pain").${levelHint}`
 
   const prompt = `You are a French language teacher. ${typeInstruction}${existingHint}
 
@@ -293,7 +305,7 @@ Rules:
 - english: concise English translation
 - chinese: Traditional Chinese translation
 - level: CEFR level for each item — one of A1, A2, B1, B2
-- All ${safeCount} items must be different
+- All ${requestCount} items must be different from each other
 - Prefer common, everyday ${type === 'sentence' ? 'sentences' : 'vocabulary'} appropriate for learners`
 
   try {
@@ -319,17 +331,33 @@ Rules:
 
     const now = Date.now()
     const VALID_LEVELS = ['A1', 'A2', 'B1', 'B2']
-    const words = parsed.words.slice(0, safeCount).map((w, i) => ({
-      id:          `custom_${now + i}`,
-      french:      String(w.french  ?? '').slice(0, 300),
-      english:     String(w.english ?? '').slice(0, 200),
-      chinese:     String(w.chinese ?? '').slice(0, 200),
-      level:       VALID_LEVELS.includes(w.level) ? w.level : undefined,
-      category:    safeId,
-      contentType: type,
-      isCustom:    true,
-      audioPath:   null,
-    }))
+
+    // Filter out duplicates that slipped through the prompt, take exactly safeCount
+    const seenFrench = new Set(existingFrenchSet)
+    const words = []
+    for (const w of parsed.words) {
+      if (words.length >= safeCount) break
+      const frenchText = String(w.french ?? '').trim()
+      if (!frenchText) continue
+      const key = frenchText.toLowerCase()
+      if (seenFrench.has(key)) continue
+      seenFrench.add(key)
+      words.push({
+        id:          `custom_${now + words.length}`,
+        french:      frenchText.slice(0, 300),
+        english:     String(w.english ?? '').slice(0, 200),
+        chinese:     String(w.chinese ?? '').slice(0, 200),
+        level:       VALID_LEVELS.includes(w.level) ? w.level : undefined,
+        category:    safeId,
+        contentType: type,
+        isCustom:    true,
+        audioPath:   null,
+      })
+    }
+
+    if (words.length === 0) {
+      return res.status(500).json({ error: 'Could not generate new words for this category.' })
+    }
 
     return res.json({ words })
   } catch (err) {

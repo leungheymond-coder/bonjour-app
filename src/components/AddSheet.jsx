@@ -127,9 +127,9 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
     setErrorMsg('')
 
     const selectedCat = categories.find((c) => c.id === categoryId)
-    const existingFrench = [...vocabulary, ...customWords]
+    const existingWords = [...vocabulary, ...customWords]
       .filter((w) => w.category === categoryId)
-      .map((w) => w.french)
+      .map((w) => ({ french: w.french, english: w.english }))
 
     try {
       const res = await fetch(`${API_URL}/api/explore`, {
@@ -138,7 +138,7 @@ export default function AddSheet({ onClose, defaultContentType = 'vocab' }) {
         body: JSON.stringify({
           categoryId,
           categoryLabel: selectedCat?.labelFrench ?? categoryId,
-          existingWords: existingFrench,
+          existingWords,
           type:  contentType,
           level: level || undefined,
           count: 5,
