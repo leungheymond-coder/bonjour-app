@@ -64,6 +64,7 @@ export default function ListenPage() {
   )
   const [selectedType, setSelectedType]   = useState(restored.selectedType  ?? 'all')
   const [selectedLevel, setSelectedLevel] = useState(restored.selectedLevel ?? 'all')
+  const [mode, setMode] = useState(restored.mode ?? 'listening')
 
   function toggleGroup(id) {
     setSelectedGroups((prev) => {
@@ -90,6 +91,7 @@ export default function ListenPage() {
         selectedGroups: [...selectedGroups],
         selectedType,
         selectedLevel,
+        mode,
       },
     })
   }
@@ -107,8 +109,40 @@ export default function ListenPage() {
       {/* Scrollable content */}
       <div className="flex flex-col gap-1 p-4 pb-4">
         {/* Header */}
-        <div className="mb-2">
-          <h1 className="text-2xl font-bold text-foreground font-heading">Practice</h1>
+        <div className="mb-3">
+          <h1 className="text-2xl font-bold text-foreground font-heading">Listen</h1>
+        </div>
+
+        {/* Mode selector */}
+        <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground mb-2">Mode</p>
+        <div className="flex gap-3 mb-4">
+          {[
+            { id: 'listening', icon: '🎧', label: 'Listening', desc: 'Hear audio, reveal meaning' },
+            { id: 'dictation', icon: '✍️', label: 'Dictation', desc: 'See meaning, type French' },
+          ].map(m => (
+            <button
+              key={m.id}
+              onClick={() => setMode(m.id)}
+              className={cn(
+                'flex-1 flex flex-col items-start gap-1.5 p-3 rounded-2xl border-2 transition-all duration-200 text-left',
+                mode === m.id
+                  ? 'border-primary bg-primary/[0.10]'
+                  : 'border-border bg-card hover:opacity-80'
+              )}
+            >
+              <span
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-[18px] shrink-0"
+                style={mode === m.id
+                  ? { background: 'var(--btn-primary-gradient)' }
+                  : { background: 'rgba(255,255,255,0.08)' }
+                }
+              >
+                {m.icon}
+              </span>
+              <p className="font-bold text-foreground text-sm">{m.label}</p>
+              <p className="text-muted-foreground text-[11px] leading-tight">{m.desc}</p>
+            </button>
+          ))}
         </div>
 
         {/* Type filter */}
@@ -208,7 +242,7 @@ export default function ListenPage() {
         >
           {queue.length === 0
             ? 'Select at least one group to start'
-            : `Start Practice — ${queue.length} word${queue.length === 1 ? '' : 's'} →`}
+            : `Start ${mode === 'listening' ? 'Listening' : 'Dictation'} — ${queue.length} word${queue.length === 1 ? '' : 's'} →`}
         </button>
       </div>
     </div>
