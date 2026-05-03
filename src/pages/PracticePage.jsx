@@ -328,7 +328,7 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel, onPra
           <X className="h-4 w-4 text-muted-foreground" />
         </button>
         <h1 className="font-heading font-bold text-foreground" style={{ fontSize: '32px' }}>
-          Practice{' '}
+          Listen{' '}
           <span className="text-[18px] font-normal text-muted-foreground">
             ({index + 1}/{queue.length})
           </span>
@@ -548,10 +548,11 @@ function DictationView({ queue, selectedGroups, selectedType, selectedLevel, onP
   const [playing,      setPlaying]      = useState(false)
   const [regenerating, setRegenerating] = useState(false)
 
-  const inputRef     = useRef(null)
-  const audioRef     = useRef(null)
-  const cancelledRef = useRef(false)
-  const isQuitting   = useRef(false)
+  const inputRef        = useRef(null)
+  const audioRef        = useRef(null)
+  const cancelledRef    = useRef(false)
+  const isQuitting      = useRef(false)
+  const keyHandlersRef  = useRef({})
 
   const blocker = useBlocker(!showSuccess)
 
@@ -576,6 +577,17 @@ function DictationView({ queue, selectedGroups, selectedType, selectedLevel, onP
       else setQuitDialogOpen(true)
     }
   }, [blocker.state])
+
+  // Window keydown listener — reads ref at call time so always has current handlers
+  useEffect(() => {
+    function onKeyDown(e) {
+      const h = keyHandlersRef.current
+      if (e.key === 'ArrowDown') { e.preventDefault(); h.handlePlay?.() }
+      if (e.key === 'ArrowRight' && h.submitted) { e.preventDefault(); h.handleNext?.() }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const filterChips = []
   for (const id of selectedGroups) {
@@ -679,6 +691,9 @@ function DictationView({ queue, selectedGroups, selectedType, selectedLevel, onP
     }
   }
 
+  // Keep ref fresh every render so the window listener always reads current values
+  keyHandlersRef.current = { handlePlay, handleNext, submitted }
+
   function handleQuitConfirm() {
     setQuitDialogOpen(false)
     cancelAudio()
@@ -757,11 +772,26 @@ function DictationView({ queue, selectedGroups, selectedType, selectedLevel, onP
       </div>
 
       {/* Progress bar */}
-      <div className="h-2 bg-muted rounded-full overflow-hidden mb-3">
+      <div className="h-2 bg-muted rounded-full overflow-hidden mb-2">
         <div
           className="h-full rounded-full transition-all duration-300"
           style={{ width: `${progress}%`, background: 'var(--btn-primary-gradient)', boxShadow: '0 0 8px rgba(108,71,255,0.45)' }}
         />
+      </div>
+
+      {/* Live score row */}
+      <div className="flex items-center gap-3 mb-3" style={{ height: 18 }}>
+        {correctCount + wrongWords.length > 0 ? (
+          <>
+            <span className="text-xs font-bold" style={{ color: '#4ade80' }}>✓ {correctCount}</span>
+            <span className="text-xs font-bold" style={{ color: '#f87171' }}>✗ {wrongWords.length}</span>
+          </>
+        ) : (
+          <>
+            <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.15)' }}>✓ —</span>
+            <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.15)' }}>✗ —</span>
+          </>
+        )}
       </div>
 
       {/* Unified practice card */}

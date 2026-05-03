@@ -110,7 +110,7 @@ export default function ListenPage() {
       <div className="flex flex-col gap-1 p-4 pb-4">
         {/* Header */}
         <div className="mb-3">
-          <h1 className="text-2xl font-bold text-foreground font-heading">Listen</h1>
+          <h1 className="text-2xl font-bold text-foreground font-heading">Practice</h1>
         </div>
 
         {/* Mode selector */}

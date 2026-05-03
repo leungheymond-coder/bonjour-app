@@ -14,6 +14,17 @@ function formatTime(s) {
   return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
 }
 
+function useMediaQuery(query) {
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
+  useEffect(() => {
+    const mql = window.matchMedia(query)
+    const handler = (e) => setMatches(e.matches)
+    mql.addEventListener('change', handler)
+    return () => mql.removeEventListener('change', handler)
+  }, [query])
+  return matches
+}
+
 // ─── Timer pill ────────────────────────────────────────────────────────────────
 // Rendered into document.body via portal so it's never clipped by overflow:hidden
 
@@ -120,10 +131,88 @@ function TimerPill({ seconds, timerState, onStart, onPause, onResume, onReset })
   )
 }
 
+// ─── Timer card (Option B — mobile / iPad portrait) ───────────────────────────
+// Frosted vertical card with always-visible ⏸/▶ + ↺ buttons
+
+function TimerCard({ seconds, timerState, onStart, onPause, onResume, onReset }) {
+  const isIdle    = timerState === 'idle'
+  const isRunning = timerState === 'running'
+  const isPaused  = timerState === 'paused'
+
+  function handlePlayPause() {
+    if (isIdle)    { onStart();  return }
+    if (isRunning) { onPause();  return }
+    if (isPaused)  { onResume(); return }
+  }
+
+  return createPortal(
+    <div
+      className="fixed top-4 right-4 flex flex-col items-center gap-1"
+      style={{
+        zIndex: 9999,
+        padding: '8px 10px 6px',
+        minWidth: 64,
+        borderRadius: 14,
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        background: isRunning ? 'rgba(14,12,28,0.72)' : 'rgba(14,12,28,0.60)',
+        border: `1px solid ${isRunning ? 'rgba(152,120,224,0.28)' : 'rgba(255,255,255,0.09)'}`,
+      }}
+    >
+      <span style={{
+        fontSize: 9,
+        fontWeight: 700,
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+        color: isRunning ? 'var(--muted-foreground)' : 'rgba(86,80,96,1)',
+      }}>
+        Session
+      </span>
+      <span
+        className="font-mono font-bold tabular-nums"
+        style={{
+          fontSize: 18,
+          letterSpacing: 1,
+          lineHeight: 1,
+          color: isRunning ? 'var(--foreground)' : 'var(--muted-foreground)',
+        }}
+      >
+        {formatTime(seconds)}
+      </span>
+      <div style={{ width: '100%', height: 1, background: 'rgba(204,184,255,0.12)', margin: '2px 0' }} />
+      <div className="flex gap-1.5">
+        <button
+          onClick={handlePlayPause}
+          className="flex items-center justify-center rounded-full transition-opacity active:scale-95"
+          style={{ width: 22, height: 22, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.10)' }}
+        >
+          {isRunning
+            ? <Pause size={9} fill="var(--foreground)" strokeWidth={0} />
+            : <Play  size={9} fill={isPaused ? 'var(--primary)' : 'var(--muted-foreground)'} strokeWidth={0} />
+          }
+        </button>
+        {!isIdle && (
+          <button
+            onClick={onReset}
+            className="flex items-center justify-center rounded-full transition-opacity active:scale-95"
+            style={{ width: 22, height: 22, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.10)' }}
+          >
+            <RotateCcw size={9} color="var(--muted-foreground)" />
+          </button>
+        )}
+      </div>
+    </div>,
+    document.body
+  )
+}
+
 // ─── Layout ────────────────────────────────────────────────────────────────────
 
 function Layout() {
   const location = useLocation()
+  // ≥1024px = iPad landscape / desktop → Option A (pill)
+  // <1024px = mobile + iPad portrait  → Option B (card)
+  const isWide = useMediaQuery('(min-width: 1024px)')
 
   // 'idle' | 'running' | 'paused'
   const [timerState,   setTimerState]   = useState('idle')
@@ -187,14 +276,23 @@ function Layout() {
       </main>
       <BottomNav />
       {showPill && (
-        <TimerPill
-          seconds={timerSeconds}
-          timerState={timerState}
-          onStart={handleStart}
-          onPause={handlePause}
-          onResume={handleResume}
-          onReset={handleReset}
-        />
+        isWide
+          ? <TimerPill
+              seconds={timerSeconds}
+              timerState={timerState}
+              onStart={handleStart}
+              onPause={handlePause}
+              onResume={handleResume}
+              onReset={handleReset}
+            />
+          : <TimerCard
+              seconds={timerSeconds}
+              timerState={timerState}
+              onStart={handleStart}
+              onPause={handlePause}
+              onResume={handleResume}
+              onReset={handleReset}
+            />
       )}
     </div>
   )
