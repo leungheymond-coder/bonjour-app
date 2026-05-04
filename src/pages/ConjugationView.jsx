@@ -62,7 +62,7 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: item.conjugated, speed: 1.0, voice: 'onyx' }),
+        body: JSON.stringify({ text: item.conjugated, speed: 0.8, voice: 'onyx' }),
       })
       if (!res.ok) return null
       const blob = await res.blob()
