@@ -22,6 +22,7 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
   const [audioLoading,   setAudioLoading]   = useState(false)
   const [pressedAction,  setPressedAction]  = useState(null) // 'correct' | 'wrong' | null
   const [correctCount,   setCorrectCount]   = useState(0)
+  const [wrongCount,     setWrongCount]     = useState(0)
   const [showSuccess,    setShowSuccess]    = useState(false)
   const [quitDialogOpen, setQuitDialogOpen] = useState(false)
 
@@ -61,7 +62,7 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: item.conjugated, speed: 1.0, voice: 'nova' }),
+        body: JSON.stringify({ text: item.conjugated, speed: 0.9, voice: 'nova' }),
       })
       if (!res.ok) return null
       const blob = await res.blob()
@@ -106,22 +107,25 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
 
   // Auto-play current card on mount / index change, pre-fetch next card
   useEffect(() => {
-    cancelledRef.current = false
+    let cancelled = false
     setAudioLoading(true)
     fetchTTS(index).then(url => {
+      if (cancelled) return
       setAudioLoading(false)
-      if (cancelledRef.current) return
       playUrl(url)
-      // Pre-fetch next
       if (index + 1 < queue.length) fetchTTS(index + 1)
     })
-    return () => { stopAudio() }
+    return () => {
+      cancelled = true
+      stopAudio()
+    }
   }, [index]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleAction(isCorrect) {
     if (pressedAction) return
     setPressedAction(isCorrect ? 'correct' : 'wrong')
     if (isCorrect) setCorrectCount(c => c + 1)
+    else setWrongCount(c => c + 1)
     actionTimerRef.current = setTimeout(() => {
       setPressedAction(null)
       stopAudio()
@@ -253,6 +257,21 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
         />
       </div>
 
+      {/* Live score row */}
+      <div className="flex items-center gap-3 mb-3" style={{ height: 18 }}>
+        {correctCount + wrongCount > 0 ? (
+          <>
+            <span className="text-xs font-bold" style={{ color: '#4ade80' }}>✓ {correctCount}</span>
+            <span className="text-xs font-bold" style={{ color: '#f87171' }}>✗ {wrongCount}</span>
+          </>
+        ) : (
+          <>
+            <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.15)' }}>✓ —</span>
+            <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.15)' }}>✗ —</span>
+          </>
+        )}
+      </div>
+
       {/* Card area */}
       <div className="flex-1 flex flex-col items-center justify-center min-h-0 gap-5">
 
@@ -304,9 +323,9 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
               <span
                 className="shrink-0 rounded-full px-3 py-1 text-[11px] font-bold mt-1"
                 style={{
-                  background: 'rgba(99,102,241,0.15)',
-                  border: '1px solid rgba(99,102,241,0.35)',
-                  color: '#a5b4fc',
+                  background: 'rgba(99,102,241,0.28)',
+                  border: '1px solid rgba(99,102,241,0.55)',
+                  color: '#c4b5fd',
                   whiteSpace: 'nowrap',
                 }}
               >
@@ -327,7 +346,7 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
               </p>
               <button
                 onClick={handlePlay}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground rounded-full px-3 py-1.5 transition-all active:scale-95"
+                className="flex items-center gap-1.5 text-xs text-slate-300 rounded-full px-3 py-1.5 transition-all active:scale-95"
                 style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
               >
                 {playing
@@ -353,8 +372,8 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
                 style={{
                   background: pressedAction === 'wrong'
                     ? '#dc2626'
-                    : 'rgba(220,38,38,0.20)',
-                  border: '1.5px solid rgba(220,38,38,0.40)',
+                    : 'rgba(220,38,38,0.35)',
+                  border: '1.5px solid rgba(220,38,38,0.65)',
                 }}
               >
                 ✗ Didn't know
@@ -373,8 +392,8 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
                 style={{
                   background: pressedAction === 'correct'
                     ? '#16a34a'
-                    : 'rgba(22,163,74,0.20)',
-                  border: '1.5px solid rgba(22,163,74,0.40)',
+                    : 'rgba(22,163,74,0.35)',
+                  border: '1.5px solid rgba(22,163,74,0.65)',
                 }}
               >
                 ✓ Got it
