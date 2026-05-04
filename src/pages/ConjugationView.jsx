@@ -323,8 +323,8 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
               <span
                 className="shrink-0 rounded-full px-3 py-1 text-[11px] font-bold mt-1"
                 style={{
-                  background: 'rgba(99,102,241,0.28)',
-                  border: '1px solid rgba(99,102,241,0.55)',
+                  background: '#312e81',
+                  border: '1px solid #4338ca',
                   color: '#c4b5fd',
                   whiteSpace: 'nowrap',
                 }}
