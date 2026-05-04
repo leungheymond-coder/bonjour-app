@@ -22,6 +22,7 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
   const [audioLoading,   setAudioLoading]   = useState(false)
   const [pressedAction,  setPressedAction]  = useState(null) // 'correct' | 'wrong' | null
   const [correctCount,   setCorrectCount]   = useState(0)
+  const [cardPlayCount,  setCardPlayCount]  = useState(0)
   const [wrongCount,     setWrongCount]     = useState(0)
   const [showSuccess,    setShowSuccess]    = useState(false)
   const [quitDialogOpen, setQuitDialogOpen] = useState(false)
@@ -54,20 +55,21 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
     Object.values(audioCache.current).forEach(url => URL.revokeObjectURL(url))
   }, [])
 
-  async function fetchTTS(idx) {
-    if (audioCache.current[idx]) return audioCache.current[idx]
+  async function fetchTTS(idx, slow = false) {
+    const cacheKey = slow ? `${idx}_slow` : idx
+    if (audioCache.current[cacheKey]) return audioCache.current[cacheKey]
     const item = queue[idx]
     if (!item) return null
     try {
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: item.conjugated, speed: 0.8, voice: 'onyx' }),
+        body: JSON.stringify({ text: item.conjugated, speed: slow ? 0.75 : 1.0, voice: 'onyx' }),
       })
       if (!res.ok) return null
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
-      audioCache.current[idx] = url
+      audioCache.current[cacheKey] = url
       return url
     } catch {
       return null
@@ -98,22 +100,31 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
     if (playing) { stopAudio(); return }
     stopAudio()
     cancelledRef.current = false
+    const useSlow = cardPlayCount > 0
+    setCardPlayCount(c => c + 1)
     setAudioLoading(true)
-    const url = await fetchTTS(index)
+    const url = await fetchTTS(index, useSlow)
     setAudioLoading(false)
     if (cancelledRef.current) return
     playUrl(url)
-  }, [index, playing]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [index, playing, cardPlayCount]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-play current card on mount / index change, pre-fetch next card
+  // Auto-play current card on mount / index change, pre-fetch slow + next cards
   useEffect(() => {
     let cancelled = false
+    setCardPlayCount(0)
     setAudioLoading(true)
-    fetchTTS(index).then(url => {
+    fetchTTS(index, false).then(url => {
       if (cancelled) return
       setAudioLoading(false)
+      setCardPlayCount(1)
       playUrl(url)
-      if (index + 1 < queue.length) fetchTTS(index + 1)
+      // Pre-fetch slow version for this card + both versions for next card
+      fetchTTS(index, true)
+      if (index + 1 < queue.length) {
+        fetchTTS(index + 1, false)
+        fetchTTS(index + 1, true)
+      }
     })
     return () => {
       cancelled = true
@@ -296,7 +307,7 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
             >
               {playing
                 ? <><Pause className="h-5 w-5" /><span>Stop</span></>
-                : <><Volume2 className="h-5 w-5" /><span>{audioLoading ? 'Loading…' : 'Play'}</span></>
+                : <><Volume2 className="h-5 w-5" /><span>{audioLoading ? 'Loading…' : cardPlayCount > 0 ? 'Replay slowly' : 'Play'}</span></>
               }
             </button>
             <button
@@ -351,7 +362,7 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
               >
                 {playing
                   ? <><Pause className="h-3 w-3" /><span>Stop</span></>
-                  : <><Volume2 className="h-3 w-3" /><span>Replay</span></>
+                  : <><Volume2 className="h-3 w-3" /><span>Replay slowly</span></>
                 }
               </button>
             </div>
