@@ -25,11 +25,12 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
   const [showSuccess,    setShowSuccess]    = useState(false)
   const [quitDialogOpen, setQuitDialogOpen] = useState(false)
 
-  const audioCache   = useRef({})  // { [index]: blobUrl }
-  const audioRef     = useRef(null)
-  const cancelledRef = useRef(false)
-  const isQuitting   = useRef(false)
+  const audioCache     = useRef({})  // { [index]: blobUrl }
+  const audioRef       = useRef(null)
+  const cancelledRef   = useRef(false)
+  const isQuitting     = useRef(false)
   const keyHandlersRef = useRef({})
+  const actionTimerRef = useRef(null)
 
   const blocker = useBlocker(!showSuccess)
 
@@ -42,6 +43,7 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
 
   // Audio cleanup on unmount
   useEffect(() => () => {
+    if (actionTimerRef.current) clearTimeout(actionTimerRef.current)
     cancelledRef.current = true
     if (audioRef.current) {
       const a = audioRef.current; audioRef.current = null
@@ -120,7 +122,7 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
     if (pressedAction) return
     setPressedAction(isCorrect ? 'correct' : 'wrong')
     if (isCorrect) setCorrectCount(c => c + 1)
-    setTimeout(() => {
+    actionTimerRef.current = setTimeout(() => {
       setPressedAction(null)
       stopAudio()
       if (index < queue.length - 1) {
@@ -165,7 +167,7 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
   if (showSuccess) {
     const allCorrect = correctCount === queue.length
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100svh-0px)] p-6 text-center gap-6">
+      <div className="flex flex-col items-center justify-center min-h-[100svh] p-6 text-center gap-6">
         <div className="text-5xl tracking-widest">
           {allCorrect ? '🌟✨🗼' : '💪✨📝'}
         </div>
