@@ -33,15 +33,17 @@ Generated once by `scripts/generate-conjugations.js`. Keyed by vocabulary ID.
 ```js
 export const conjugations = {
   "v001": {
-    "présent":           { je: "suis", tu: "es", "il/elle": "est", nous: "sommes", vous: "êtes", "ils/elles": "sont" },
-    "passé composé":     { je: "j'ai été", tu: "as été", "il/elle": "a été", nous: "avons été", vous: "avez été", "ils/elles": "ont été" },
-    "imparfait":         { je: "étais", tu: "étais", "il/elle": "était", nous: "étions", vous: "étiez", "ils/elles": "étaient" },
-    "futur simple":      { je: "serai", tu: "seras", "il/elle": "sera", nous: "serons", vous: "serez", "ils/elles": "seront" },
-    "conditionnel":      { je: "serais", tu: "serais", "il/elle": "serait", nous: "serions", vous: "seriez", "ils/elles": "seraient" },
+    "présent":           { je: "je suis", tu: "tu es", "il/elle": "il est", nous: "nous sommes", vous: "vous êtes", "ils/elles": "ils sont" },
+    "passé composé":     { je: "j'ai été", tu: "tu as été", "il/elle": "il a été", nous: "nous avons été", vous: "vous avez été", "ils/elles": "ils ont été" },
+    "imparfait":         { je: "j'étais", tu: "tu étais", "il/elle": "il était", nous: "nous étions", vous: "vous étiez", "ils/elles": "ils étaient" },
+    "futur simple":      { je: "je serai", tu: "tu seras", "il/elle": "il sera", nous: "nous serons", vous: "vous serez", "ils/elles": "ils seront" },
+    "conditionnel":      { je: "je serais", tu: "tu serais", "il/elle": "il serait", nous: "nous serions", vous: "vous seriez", "ils/elles": "ils seraient" },
   },
   // ... one entry per built-in verb id
 }
 ```
+
+Every value is the **full conjugated string** (pronoun + verb, with je/j' elision already applied). Queue-building reads `conjugations[wordId][tense][pronoun]` directly — no assembly at runtime.
 
 ### Custom verb conjugations
 
@@ -64,7 +66,7 @@ export const conjugations = {
 ```json
 {
   "conjugations": {
-    "présent":       { "je": "cours", "tu": "cours", "il/elle": "court", "nous": "courons", "vous": "courez", "ils/elles": "courent" },
+    "présent":       { "je": "je cours", "tu": "tu cours", "il/elle": "il court", "nous": "nous courons", "vous": "vous courez", "ils/elles": "ils courent" },
     "passé composé": { ... },
     "imparfait":     { ... },
     "futur simple":  { ... },
