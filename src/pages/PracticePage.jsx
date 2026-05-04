@@ -118,6 +118,7 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel, onPra
   const [savePopoverOpen, setSavePopoverOpen] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [quitDialogOpen, setQuitDialogOpen] = useState(false)
+  const saveBtnRef = useRef(null)
 
   useEffect(() => () => {
     cancelledRef.current = true
@@ -417,8 +418,9 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel, onPra
               <p className="font-semibold text-foreground" style={{ fontSize: '15px' }}>{word.english}</p>
               <p className="text-muted-foreground" style={{ fontSize: '13px' }}>{word.chinese}</p>
             </div>
-            <div className="relative shrink-0">
+            <div className="shrink-0">
               <button
+                ref={saveBtnRef}
                 onClick={() => setSavePopoverOpen(v => !v)}
                 aria-label="Save to folder"
                 className={cn(
@@ -435,7 +437,11 @@ function SessionView({ queue, selectedGroups, selectedType, selectedLevel, onPra
                 }
               </button>
               {savePopoverOpen && (
-                <FolderPopover wordId={word.id} onClose={() => setSavePopoverOpen(false)} />
+                <FolderPopover
+                  wordId={word.id}
+                  anchorEl={saveBtnRef.current}
+                  onClose={() => setSavePopoverOpen(false)}
+                />
               )}
             </div>
           </div>
@@ -554,6 +560,7 @@ function DictationView({ queue, selectedGroups, selectedType, selectedLevel, onP
   const cancelledRef    = useRef(false)
   const isQuitting      = useRef(false)
   const keyHandlersRef  = useRef({})
+  const saveBtnRef      = useRef(null)
 
   const blocker = useBlocker(!showSuccess)
 
@@ -895,8 +902,9 @@ function DictationView({ queue, selectedGroups, selectedType, selectedLevel, onP
                   <p className="text-xs text-muted-foreground mt-0.5 tracking-wide">{word.phonetic}</p>
                 )}
               </div>
-              <div className="relative shrink-0">
+              <div className="shrink-0">
                 <button
+                  ref={saveBtnRef}
                   onClick={() => setSavePopoverOpen(v => !v)}
                   aria-label="Save to folder"
                   className={cn(
@@ -911,7 +919,11 @@ function DictationView({ queue, selectedGroups, selectedType, selectedLevel, onP
                   }
                 </button>
                 {savePopoverOpen && (
-                  <FolderPopover wordId={word.id} onClose={() => setSavePopoverOpen(false)} />
+                  <FolderPopover
+                    wordId={word.id}
+                    anchorEl={saveBtnRef.current}
+                    onClose={() => setSavePopoverOpen(false)}
+                  />
                 )}
               </div>
             </div>

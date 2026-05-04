@@ -1,18 +1,41 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Check, FolderPlus, X } from 'lucide-react'
 import { useCollections, USER_FOLDER_IDS } from '@/hooks/useCollections'
 import { cn } from '@/lib/utils'
 
-export default function FolderPopover({ wordId, onClose }) {
+export default function FolderPopover({ wordId, anchorEl, onClose }) {
   const { collections, activeFolders, isInFolder, toggleInFolder, setFolderName } = useCollections()
   const ref = useRef(null)
   const [creating, setCreating] = useState(false)
   const [nameVal, setNameVal]   = useState('')
+  const [style, setStyle]       = useState({ position: 'fixed', top: -9999, right: 0, zIndex: 9999 })
 
-  // Dismiss on outside click/touch
+  useLayoutEffect(() => {
+    if (!anchorEl) return
+    const rect = anchorEl.getBoundingClientRect()
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    const spaceBelow = vh - rect.bottom - 8
+    const openAbove  = spaceBelow < 280 && rect.top > 160
+
+    setStyle({
+      position: 'fixed',
+      right: Math.max(8, vw - rect.right),
+      ...(openAbove
+        ? { bottom: vh - rect.top + 4, maxHeight: rect.top - 16 }
+        : { top: rect.bottom + 4,     maxHeight: spaceBelow }),
+      zIndex: 9999,
+      minWidth: 220,
+    })
+  }, [anchorEl])
+
   useEffect(() => {
     function handleOutside(e) {
-      if (ref.current && !ref.current.contains(e.target)) onClose()
+      if (
+        ref.current && !ref.current.contains(e.target) &&
+        !(anchorEl && anchorEl.contains(e.target))
+      ) onClose()
     }
     document.addEventListener('mousedown', handleOutside)
     document.addEventListener('touchstart', handleOutside)
@@ -20,13 +43,12 @@ export default function FolderPopover({ wordId, onClose }) {
       document.removeEventListener('mousedown', handleOutside)
       document.removeEventListener('touchstart', handleOutside)
     }
-  }, [onClose])
+  }, [onClose, anchorEl])
 
   const emptySlot = USER_FOLDER_IDS.find((id) => collections[id]?.name === null)
 
   function handleToggle(folderId) {
     toggleInFolder(folderId, wordId)
-    // Close after short delay so user sees the checkbox update
     setTimeout(onClose, 2500)
   }
 
@@ -40,15 +62,17 @@ export default function FolderPopover({ wordId, onClose }) {
     setTimeout(onClose, 2500)
   }
 
-  return (
+  return createPortal(
     <div
       ref={ref}
-      className="absolute right-0 top-full mt-1 z-50 bg-background border border-border rounded-xl shadow-lg p-2 min-w-[220px]"
+      style={style}
+      className="bg-background border border-border rounded-xl shadow-lg p-2 flex flex-col overflow-hidden"
     >
-      <p className="text-[9px] font-semibold tracking-widest uppercase text-muted-foreground px-2 py-1">
+      <p className="text-[9px] font-semibold tracking-widest uppercase text-muted-foreground px-2 py-1 shrink-0">
         Save to…
       </p>
-      <div className="max-h-[260px] overflow-y-auto overscroll-contain">
+
+      <div className="overflow-y-auto overscroll-contain">
         {activeFolders.map((folder) => {
           const active = isInFolder(folder.id, wordId)
           return (
@@ -75,7 +99,7 @@ export default function FolderPopover({ wordId, onClose }) {
       </div>
 
       {emptySlot && (
-        <div className="mt-1 pt-1 border-t border-border/60">
+        <div className="mt-1 pt-1 border-t border-border/60 shrink-0">
           {creating ? (
             <div className="flex items-center gap-1.5 px-1 py-1">
               <input
@@ -116,6 +140,7 @@ export default function FolderPopover({ wordId, onClose }) {
           )}
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   )
 }

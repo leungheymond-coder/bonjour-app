@@ -35,8 +35,9 @@ export default function WordCard({ word }) {
 
   const anyRegenerating = useSyncExternalStore(_subscribeRegen, _snapshotRegen)
 
-  const inAnyFolder = isInAnyFolder(word.id)
-  const audioRef    = useRef(null)
+  const inAnyFolder     = isInAnyFolder(word.id)
+  const audioRef        = useRef(null)
+  const bookmarkBtnRef  = useRef(null)
 
   // audioPath === null means generation failed or was interrupted — user can tap to retry
   const audioPending = word.isCustom && word.audioPath === null
@@ -215,8 +216,9 @@ export default function WordCard({ word }) {
           </button>
 
           {/* Folder button */}
-          <div className="relative">
+          <div>
             <button
+              ref={bookmarkBtnRef}
               onClick={() => { setMenuOpen(false); setPopoverOpen((v) => !v) }}
               aria-label="Save to folder"
               className={cn(
@@ -232,6 +234,7 @@ export default function WordCard({ word }) {
             {popoverOpen && (
               <FolderPopover
                 wordId={word.id}
+                anchorEl={bookmarkBtnRef.current}
                 onClose={() => setPopoverOpen(false)}
               />
             )}
