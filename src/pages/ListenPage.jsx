@@ -217,7 +217,10 @@ export default function ListenPage() {
     // Re-build queue now that all custom conjugations are cached
     const finalCache = loadCustomConjugationsCache(verbs)
     const finalQueue = buildConjugationQueue(verbSource, selectedTenses, collections, customWords, conjugations, finalCache)
-    if (finalQueue.length === 0) return
+    if (finalQueue.length === 0) {
+      alert('Could not generate conjugation data. Please check your connection and try again.')
+      return
+    }
 
     navigate('/practice', {
       state: { queue: finalQueue, mode: 'conjugation', verbSource, selectedTenses: [...selectedTenses] },
@@ -381,7 +384,7 @@ export default function ListenPage() {
                 All verbs
               </button>
               {activeFolders
-                .filter(f => (collections[f.id]?.ids?.length ?? 0) > 0)
+                .filter(f => !f.fixed && (collections[f.id]?.ids?.length ?? 0) > 0)
                 .map(f => (
                   <button
                     key={f.id}
