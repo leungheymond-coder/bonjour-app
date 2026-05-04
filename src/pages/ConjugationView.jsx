@@ -55,21 +55,20 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
     Object.values(audioCache.current).forEach(url => URL.revokeObjectURL(url))
   }, [])
 
-  async function fetchTTS(idx, slow = false) {
-    const cacheKey = slow ? `${idx}_slow` : idx
-    if (audioCache.current[cacheKey]) return audioCache.current[cacheKey]
+  async function fetchTTS(idx) {
+    if (audioCache.current[idx]) return audioCache.current[idx]
     const item = queue[idx]
     if (!item) return null
     try {
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: item.conjugated, speed: slow ? 0.75 : 1.0, voice: 'onyx' }),
+        body: JSON.stringify({ text: item.conjugated }),
       })
       if (!res.ok) return null
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
-      audioCache.current[cacheKey] = url
+      audioCache.current[idx] = url
       return url
     } catch {
       return null
@@ -85,9 +84,11 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
     setPlaying(false)
   }
 
-  function playUrl(url) {
+  // Chirp3 HD doesn't support native speakingRate — use playbackRate for slow replay
+  function playUrl(url, slow = false) {
     if (!url) return
     const audio = new Audio(url)
+    if (slow) audio.playbackRate = 0.75
     audioRef.current = audio
     audio.onended = () => { audioRef.current = null; setPlaying(false) }
     audio.onerror = () => { audioRef.current = null; setPlaying(false) }
@@ -103,28 +104,23 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
     const useSlow = cardPlayCount > 0
     setCardPlayCount(c => c + 1)
     setAudioLoading(true)
-    const url = await fetchTTS(index, useSlow)
+    const url = await fetchTTS(index)
     setAudioLoading(false)
     if (cancelledRef.current) return
-    playUrl(url)
+    playUrl(url, useSlow)
   }, [index, playing, cardPlayCount]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-play current card on mount / index change, pre-fetch slow + next cards
+  // Auto-play on mount / index change, pre-fetch next card
   useEffect(() => {
     let cancelled = false
     setCardPlayCount(0)
     setAudioLoading(true)
-    fetchTTS(index, false).then(url => {
+    fetchTTS(index).then(url => {
       if (cancelled) return
       setAudioLoading(false)
       setCardPlayCount(1)
-      playUrl(url)
-      // Pre-fetch slow version for this card + both versions for next card
-      fetchTTS(index, true)
-      if (index + 1 < queue.length) {
-        fetchTTS(index + 1, false)
-        fetchTTS(index + 1, true)
-      }
+      playUrl(url, false)
+      if (index + 1 < queue.length) fetchTTS(index + 1)
     })
     return () => {
       cancelled = true

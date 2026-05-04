@@ -95,24 +95,37 @@ Rules:
   }
 })
 
-// ─── POST /api/tts — OpenAI TTS proxy ────────────────────────────────────────
+// ─── POST /api/tts — Google Cloud TTS (Chirp3 HD) ────────────────────────────
 
 app.post('/api/tts', async (req, res) => {
-  const { text, speed = 0.75, voice = 'nova' } = req.body
-  const VALID_VOICES = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
-  const safeVoice = VALID_VOICES.includes(voice) ? voice : 'nova'
-
+  const { text } = req.body
   if (!text) return res.status(400).json({ error: 'Missing required field: text.' })
+  if (!process.env.GOOGLE_TTS_API_KEY) {
+    return res.status(500).json({ error: 'GOOGLE_TTS_API_KEY not configured in server/.env.' })
+  }
 
   try {
-    const mp3 = await openai.audio.speech.create({
-      model: 'tts-1',
-      voice: safeVoice,
-      input: text,
-      speed: Math.min(Math.max(Number(speed), 0.25), 4.0),
-    })
+    const response = await fetch(
+      `https://texttospeech.googleapis.com/v1/text:synthesize?key=${process.env.GOOGLE_TTS_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input: { text },
+          voice: { languageCode: 'fr-FR', name: 'fr-FR-Chirp3-HD-Aoede' },
+          audioConfig: { audioEncoding: 'MP3' },
+        }),
+      }
+    )
 
-    const buffer = Buffer.from(await mp3.arrayBuffer())
+    if (!response.ok) {
+      const errBody = await response.json().catch(() => ({}))
+      console.error('[/api/tts]', errBody)
+      return res.status(500).json({ error: 'Failed to generate audio.' })
+    }
+
+    const data = await response.json()
+    const buffer = Buffer.from(data.audioContent, 'base64')
     res.set('Content-Type', 'audio/mpeg')
     res.set('Content-Length', buffer.length)
     res.send(buffer)
