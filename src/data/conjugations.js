@@ -7,840 +7,840 @@ export const conjugations = {
     "présent": {
       "je": "je suis",
       "tu": "tu es",
-      "il/elle": "il/elle est",
+      "il/elle": "il est",
       "nous": "nous sommes",
       "vous": "vous êtes",
-      "ils/elles": "ils/elles sont"
+      "ils/elles": "ils sont"
     },
     "passé composé": {
       "je": "j'ai été",
       "tu": "tu as été",
-      "il/elle": "il/elle a été",
+      "il/elle": "il a été",
       "nous": "nous avons été",
       "vous": "vous avez été",
-      "ils/elles": "ils/elles ont été"
+      "ils/elles": "ils ont été"
     },
     "imparfait": {
       "je": "j'étais",
       "tu": "tu étais",
-      "il/elle": "il/elle était",
+      "il/elle": "il était",
       "nous": "nous étions",
       "vous": "vous étiez",
-      "ils/elles": "ils/elles étaient"
+      "ils/elles": "ils étaient"
     },
     "futur simple": {
       "je": "je serai",
       "tu": "tu seras",
-      "il/elle": "il/elle sera",
+      "il/elle": "il sera",
       "nous": "nous serons",
       "vous": "vous serez",
-      "ils/elles": "ils/elles seront"
+      "ils/elles": "ils seront"
     },
     "conditionnel": {
       "je": "je serais",
       "tu": "tu serais",
-      "il/elle": "il/elle serait",
+      "il/elle": "il serait",
       "nous": "nous serions",
       "vous": "vous seriez",
-      "ils/elles": "ils/elles seraient"
+      "ils/elles": "ils seraient"
     }
   },
   "v002": {
     "présent": {
       "je": "j'ai",
       "tu": "tu as",
-      "il/elle": "il/elle a",
+      "il/elle": "il a",
       "nous": "nous avons",
       "vous": "vous avez",
-      "ils/elles": "ils/elles ont"
+      "ils/elles": "ils ont"
     },
     "passé composé": {
       "je": "j'ai eu",
       "tu": "tu as eu",
-      "il/elle": "il/elle a eu",
+      "il/elle": "il a eu",
       "nous": "nous avons eu",
       "vous": "vous avez eu",
-      "ils/elles": "ils/elles ont eu"
+      "ils/elles": "ils ont eu"
     },
     "imparfait": {
       "je": "j'avais",
       "tu": "tu avais",
-      "il/elle": "il/elle avait",
+      "il/elle": "il avait",
       "nous": "nous avions",
       "vous": "vous aviez",
-      "ils/elles": "ils/elles avaient"
+      "ils/elles": "ils avaient"
     },
     "futur simple": {
       "je": "j'aurai",
       "tu": "tu auras",
-      "il/elle": "il/elle aura",
+      "il/elle": "il aura",
       "nous": "nous aurons",
       "vous": "vous aurez",
-      "ils/elles": "ils/elles auront"
+      "ils/elles": "ils auront"
     },
     "conditionnel": {
       "je": "j'aurais",
       "tu": "tu aurais",
-      "il/elle": "il/elle aurait",
+      "il/elle": "il aurait",
       "nous": "nous aurions",
       "vous": "vous auriez",
-      "ils/elles": "ils/elles auraient"
+      "ils/elles": "ils auraient"
     }
   },
   "v003": {
     "présent": {
       "je": "je vais",
       "tu": "tu vas",
-      "il/elle": "il/elle va",
+      "il/elle": "il va",
       "nous": "nous allons",
       "vous": "vous allez",
-      "ils/elles": "ils/elles vont"
+      "ils/elles": "ils vont"
     },
     "passé composé": {
-      "je": "je suis allé(e)",
-      "tu": "tu es allé(e)",
-      "il/elle": "il/elle est allé(e)",
-      "nous": "nous sommes allé(e)s",
-      "vous": "vous êtes allé(e)s",
-      "ils/elles": "ils/elles sont allé(e)s"
+      "je": "je suis allé",
+      "tu": "tu es allé",
+      "il/elle": "il est allé",
+      "nous": "nous sommes allés",
+      "vous": "vous êtes allés",
+      "ils/elles": "ils sont allés"
     },
     "imparfait": {
       "je": "j'allais",
       "tu": "tu allais",
-      "il/elle": "il/elle allait",
+      "il/elle": "il allait",
       "nous": "nous allions",
       "vous": "vous alliez",
-      "ils/elles": "ils/elles allaient"
+      "ils/elles": "ils allaient"
     },
     "futur simple": {
       "je": "j'irai",
       "tu": "tu iras",
-      "il/elle": "il/elle ira",
+      "il/elle": "il ira",
       "nous": "nous irons",
       "vous": "vous irez",
-      "ils/elles": "ils/elles iront"
+      "ils/elles": "ils iront"
     },
     "conditionnel": {
       "je": "j'irais",
       "tu": "tu irais",
-      "il/elle": "il/elle irait",
+      "il/elle": "il irait",
       "nous": "nous irions",
       "vous": "vous iriez",
-      "ils/elles": "ils/elles iraient"
+      "ils/elles": "ils iraient"
     }
   },
   "v004": {
     "présent": {
       "je": "je fais",
       "tu": "tu fais",
-      "il/elle": "il/elle fait",
+      "il/elle": "il fait",
       "nous": "nous faisons",
       "vous": "vous faites",
-      "ils/elles": "ils/elles font"
+      "ils/elles": "ils font"
     },
     "passé composé": {
       "je": "j'ai fait",
       "tu": "tu as fait",
-      "il/elle": "il/elle a fait",
+      "il/elle": "il a fait",
       "nous": "nous avons fait",
       "vous": "vous avez fait",
-      "ils/elles": "ils/elles ont fait"
+      "ils/elles": "ils ont fait"
     },
     "imparfait": {
       "je": "je faisais",
       "tu": "tu faisais",
-      "il/elle": "il/elle faisait",
+      "il/elle": "il faisait",
       "nous": "nous faisions",
       "vous": "vous faisiez",
-      "ils/elles": "ils/elles faisaient"
+      "ils/elles": "ils faisaient"
     },
     "futur simple": {
       "je": "je ferai",
       "tu": "tu feras",
-      "il/elle": "il/elle fera",
+      "il/elle": "il fera",
       "nous": "nous ferons",
       "vous": "vous ferez",
-      "ils/elles": "ils/elles feront"
+      "ils/elles": "ils feront"
     },
     "conditionnel": {
       "je": "je ferais",
       "tu": "tu ferais",
-      "il/elle": "il/elle ferait",
+      "il/elle": "il ferait",
       "nous": "nous ferions",
       "vous": "vous feriez",
-      "ils/elles": "ils/elles feraient"
+      "ils/elles": "ils feraient"
     }
   },
   "v005": {
     "présent": {
       "je": "je veux",
       "tu": "tu veux",
-      "il/elle": "il/elle veut",
+      "il/elle": "il veut",
       "nous": "nous voulons",
       "vous": "vous voulez",
-      "ils/elles": "ils/elles veulent"
+      "ils/elles": "ils veulent"
     },
     "passé composé": {
       "je": "j'ai voulu",
       "tu": "tu as voulu",
-      "il/elle": "il/elle a voulu",
+      "il/elle": "il a voulu",
       "nous": "nous avons voulu",
       "vous": "vous avez voulu",
-      "ils/elles": "ils/elles ont voulu"
+      "ils/elles": "ils ont voulu"
     },
     "imparfait": {
       "je": "je voulais",
       "tu": "tu voulais",
-      "il/elle": "il/elle voulait",
+      "il/elle": "il voulait",
       "nous": "nous voulions",
       "vous": "vous vouliez",
-      "ils/elles": "ils/elles voulaient"
+      "ils/elles": "ils voulaient"
     },
     "futur simple": {
       "je": "je voudrai",
       "tu": "tu voudras",
-      "il/elle": "il/elle voudra",
+      "il/elle": "il voudra",
       "nous": "nous voudrons",
       "vous": "vous voudrez",
-      "ils/elles": "ils/elles voudront"
+      "ils/elles": "ils voudront"
     },
     "conditionnel": {
       "je": "je voudrais",
       "tu": "tu voudrais",
-      "il/elle": "il/elle voudrait",
+      "il/elle": "il voudrait",
       "nous": "nous voudrions",
       "vous": "vous voudriez",
-      "ils/elles": "ils/elles voudraient"
+      "ils/elles": "ils voudraient"
     }
   },
   "v006": {
     "présent": {
       "je": "je peux",
       "tu": "tu peux",
-      "il/elle": "il/elle peut",
+      "il/elle": "il peut",
       "nous": "nous pouvons",
       "vous": "vous pouvez",
-      "ils/elles": "ils/elles peuvent"
+      "ils/elles": "ils peuvent"
     },
     "passé composé": {
       "je": "j'ai pu",
       "tu": "tu as pu",
-      "il/elle": "il/elle a pu",
+      "il/elle": "il a pu",
       "nous": "nous avons pu",
       "vous": "vous avez pu",
-      "ils/elles": "ils/elles ont pu"
+      "ils/elles": "ils ont pu"
     },
     "imparfait": {
       "je": "je pouvais",
       "tu": "tu pouvais",
-      "il/elle": "il/elle pouvait",
+      "il/elle": "il pouvait",
       "nous": "nous pouvions",
       "vous": "vous pouviez",
-      "ils/elles": "ils/elles pouvaient"
+      "ils/elles": "ils pouvaient"
     },
     "futur simple": {
       "je": "je pourrai",
       "tu": "tu pourras",
-      "il/elle": "il/elle pourra",
+      "il/elle": "il pourra",
       "nous": "nous pourrons",
       "vous": "vous pourrez",
-      "ils/elles": "ils/elles pourront"
+      "ils/elles": "ils pourront"
     },
     "conditionnel": {
       "je": "je pourrais",
       "tu": "tu pourrais",
-      "il/elle": "il/elle pourrait",
+      "il/elle": "il pourrait",
       "nous": "nous pourrions",
       "vous": "vous pourriez",
-      "ils/elles": "ils/elles pourraient"
+      "ils/elles": "ils pourraient"
     }
   },
   "v007": {
     "présent": {
       "je": "je mange",
       "tu": "tu manges",
-      "il/elle": "il/elle mange",
+      "il/elle": "il mange",
       "nous": "nous mangeons",
       "vous": "vous mangez",
-      "ils/elles": "ils/elles mangent"
+      "ils/elles": "ils mangent"
     },
     "passé composé": {
       "je": "j'ai mangé",
       "tu": "tu as mangé",
-      "il/elle": "il/elle a mangé",
+      "il/elle": "il a mangé",
       "nous": "nous avons mangé",
       "vous": "vous avez mangé",
-      "ils/elles": "ils/elles ont mangé"
+      "ils/elles": "ils ont mangé"
     },
     "imparfait": {
       "je": "je mangeais",
       "tu": "tu mangeais",
-      "il/elle": "il/elle mangeait",
+      "il/elle": "il mangeait",
       "nous": "nous mangions",
       "vous": "vous mangiez",
-      "ils/elles": "ils/elles mangeaient"
+      "ils/elles": "ils mangeaient"
     },
     "futur simple": {
       "je": "je mangerai",
       "tu": "tu mangeras",
-      "il/elle": "il/elle mangera",
+      "il/elle": "il mangera",
       "nous": "nous mangerons",
       "vous": "vous mangerez",
-      "ils/elles": "ils/elles mangeront"
+      "ils/elles": "ils mangeront"
     },
     "conditionnel": {
       "je": "je mangerais",
       "tu": "tu mangerais",
-      "il/elle": "il/elle mangerait",
+      "il/elle": "il mangerait",
       "nous": "nous mangerions",
       "vous": "vous mangeriez",
-      "ils/elles": "ils/elles mangeraient"
+      "ils/elles": "ils mangeraient"
     }
   },
   "v008": {
     "présent": {
       "je": "je bois",
       "tu": "tu bois",
-      "il/elle": "il/elle boit",
+      "il/elle": "il boit",
       "nous": "nous buvons",
       "vous": "vous buvez",
-      "ils/elles": "ils/elles boivent"
+      "ils/elles": "ils boivent"
     },
     "passé composé": {
       "je": "j'ai bu",
       "tu": "tu as bu",
-      "il/elle": "il/elle a bu",
+      "il/elle": "il a bu",
       "nous": "nous avons bu",
       "vous": "vous avez bu",
-      "ils/elles": "ils/elles ont bu"
+      "ils/elles": "ils ont bu"
     },
     "imparfait": {
       "je": "je buvais",
       "tu": "tu buvais",
-      "il/elle": "il/elle buvait",
+      "il/elle": "il buvait",
       "nous": "nous buvions",
       "vous": "vous buviez",
-      "ils/elles": "ils/elles buvaient"
+      "ils/elles": "ils buvaient"
     },
     "futur simple": {
       "je": "je boirai",
       "tu": "tu boiras",
-      "il/elle": "il/elle boira",
+      "il/elle": "il boira",
       "nous": "nous boirons",
       "vous": "vous boirez",
-      "ils/elles": "ils/elles boiront"
+      "ils/elles": "ils boiront"
     },
     "conditionnel": {
       "je": "je boirais",
       "tu": "tu boirais",
-      "il/elle": "il/elle boirait",
+      "il/elle": "il boirait",
       "nous": "nous boirions",
       "vous": "vous boiriez",
-      "ils/elles": "ils/elles boiraient"
+      "ils/elles": "ils boiraient"
     }
   },
   "v009": {
     "présent": {
       "je": "je parle",
       "tu": "tu parles",
-      "il/elle": "il/elle parle",
+      "il/elle": "il parle",
       "nous": "nous parlons",
       "vous": "vous parlez",
-      "ils/elles": "ils/elles parlent"
+      "ils/elles": "ils parlent"
     },
     "passé composé": {
       "je": "j'ai parlé",
       "tu": "tu as parlé",
-      "il/elle": "il/elle a parlé",
+      "il/elle": "il a parlé",
       "nous": "nous avons parlé",
       "vous": "vous avez parlé",
-      "ils/elles": "ils/elles ont parlé"
+      "ils/elles": "ils ont parlé"
     },
     "imparfait": {
       "je": "je parlais",
       "tu": "tu parlais",
-      "il/elle": "il/elle parlait",
+      "il/elle": "il parlait",
       "nous": "nous parlions",
       "vous": "vous parliez",
-      "ils/elles": "ils/elles parlaient"
+      "ils/elles": "ils parlaient"
     },
     "futur simple": {
       "je": "je parlerai",
       "tu": "tu parleras",
-      "il/elle": "il/elle parlera",
+      "il/elle": "il parlera",
       "nous": "nous parlerons",
       "vous": "vous parlerez",
-      "ils/elles": "ils/elles parleront"
+      "ils/elles": "ils parleront"
     },
     "conditionnel": {
       "je": "je parlerais",
       "tu": "tu parlerais",
-      "il/elle": "il/elle parlerait",
+      "il/elle": "il parlerait",
       "nous": "nous parlerions",
       "vous": "vous parleriez",
-      "ils/elles": "ils/elles parleraient"
+      "ils/elles": "ils parleraient"
     }
   },
   "v010": {
     "présent": {
       "je": "je comprends",
       "tu": "tu comprends",
-      "il/elle": "il/elle comprend",
+      "il/elle": "il comprend",
       "nous": "nous comprenons",
       "vous": "vous comprenez",
-      "ils/elles": "ils/elles comprennent"
+      "ils/elles": "ils comprennent"
     },
     "passé composé": {
       "je": "j'ai compris",
       "tu": "tu as compris",
-      "il/elle": "il/elle a compris",
+      "il/elle": "il a compris",
       "nous": "nous avons compris",
       "vous": "vous avez compris",
-      "ils/elles": "ils/elles ont compris"
+      "ils/elles": "ils ont compris"
     },
     "imparfait": {
       "je": "je comprenais",
       "tu": "tu comprenais",
-      "il/elle": "il/elle comprenait",
+      "il/elle": "il comprenait",
       "nous": "nous comprenions",
       "vous": "vous compreniez",
-      "ils/elles": "ils/elles comprenaient"
+      "ils/elles": "ils comprenaient"
     },
     "futur simple": {
       "je": "je comprendrai",
       "tu": "tu comprendras",
-      "il/elle": "il/elle comprendra",
+      "il/elle": "il comprendra",
       "nous": "nous comprendrons",
       "vous": "vous comprendrez",
-      "ils/elles": "ils/elles comprendront"
+      "ils/elles": "ils comprendront"
     },
     "conditionnel": {
       "je": "je comprendrais",
       "tu": "tu comprendrais",
-      "il/elle": "il/elle comprendrait",
+      "il/elle": "il comprendrait",
       "nous": "nous comprendrions",
       "vous": "vous comprendriez",
-      "ils/elles": "ils/elles comprendraient"
+      "ils/elles": "ils comprendraient"
     }
   },
   "v011": {
     "présent": {
       "je": "je viens",
       "tu": "tu viens",
-      "il/elle": "il/elle vient",
+      "il/elle": "il vient",
       "nous": "nous venons",
       "vous": "vous venez",
-      "ils/elles": "ils/elles viennent"
+      "ils/elles": "ils viennent"
     },
     "passé composé": {
-      "je": "je suis venu(e)",
-      "tu": "tu es venu(e)",
-      "il/elle": "il/elle est venu(e)",
-      "nous": "nous sommes venu(e)s",
-      "vous": "vous êtes venu(e)s",
-      "ils/elles": "ils/elles sont venu(e)s"
+      "je": "je suis venu",
+      "tu": "tu es venu",
+      "il/elle": "il est venu",
+      "nous": "nous sommes venus",
+      "vous": "vous êtes venus",
+      "ils/elles": "ils sont venus"
     },
     "imparfait": {
       "je": "je venais",
       "tu": "tu venais",
-      "il/elle": "il/elle venait",
+      "il/elle": "il venait",
       "nous": "nous venions",
       "vous": "vous veniez",
-      "ils/elles": "ils/elles venaient"
+      "ils/elles": "ils venaient"
     },
     "futur simple": {
       "je": "je viendrai",
       "tu": "tu viendras",
-      "il/elle": "il/elle viendra",
+      "il/elle": "il viendra",
       "nous": "nous viendrons",
       "vous": "vous viendrez",
-      "ils/elles": "ils/elles viendront"
+      "ils/elles": "ils viendront"
     },
     "conditionnel": {
       "je": "je viendrais",
       "tu": "tu viendrais",
-      "il/elle": "il/elle viendrait",
+      "il/elle": "il viendrait",
       "nous": "nous viendrions",
       "vous": "vous viendriez",
-      "ils/elles": "ils/elles viendraient"
+      "ils/elles": "ils viendraient"
     }
   },
   "v012": {
     "présent": {
       "je": "je pars",
       "tu": "tu pars",
-      "il/elle": "il/elle part",
+      "il/elle": "il part",
       "nous": "nous partons",
       "vous": "vous partez",
-      "ils/elles": "ils/elles partent"
+      "ils/elles": "ils partent"
     },
     "passé composé": {
-      "je": "je suis parti(e)",
-      "tu": "tu es parti(e)",
-      "il/elle": "il/elle est parti(e)",
-      "nous": "nous sommes parti(e)s",
-      "vous": "vous êtes parti(e)s",
-      "ils/elles": "ils/elles sont parti(e)s"
+      "je": "je suis parti",
+      "tu": "tu es parti",
+      "il/elle": "il est parti",
+      "nous": "nous sommes partis",
+      "vous": "vous êtes partis",
+      "ils/elles": "ils sont partis"
     },
     "imparfait": {
       "je": "je partais",
       "tu": "tu partais",
-      "il/elle": "il/elle partait",
+      "il/elle": "il partait",
       "nous": "nous partions",
       "vous": "vous partiez",
-      "ils/elles": "ils/elles partaient"
+      "ils/elles": "ils partaient"
     },
     "futur simple": {
       "je": "je partirai",
       "tu": "tu partiras",
-      "il/elle": "il/elle partira",
+      "il/elle": "il partira",
       "nous": "nous partirons",
       "vous": "vous partirez",
-      "ils/elles": "ils/elles partiront"
+      "ils/elles": "ils partiront"
     },
     "conditionnel": {
       "je": "je partirais",
       "tu": "tu partirais",
-      "il/elle": "il/elle partirait",
+      "il/elle": "il partirait",
       "nous": "nous partirions",
       "vous": "vous partiriez",
-      "ils/elles": "ils/elles partiraient"
+      "ils/elles": "ils partiraient"
     }
   },
   "v013": {
     "présent": {
       "je": "je prends",
       "tu": "tu prends",
-      "il/elle": "il/elle prend",
+      "il/elle": "il prend",
       "nous": "nous prenons",
       "vous": "vous prenez",
-      "ils/elles": "ils/elles prennent"
+      "ils/elles": "ils prennent"
     },
     "passé composé": {
       "je": "j'ai pris",
       "tu": "tu as pris",
-      "il/elle": "il/elle a pris",
+      "il/elle": "il a pris",
       "nous": "nous avons pris",
       "vous": "vous avez pris",
-      "ils/elles": "ils/elles ont pris"
+      "ils/elles": "ils ont pris"
     },
     "imparfait": {
       "je": "je prenais",
       "tu": "tu prenais",
-      "il/elle": "il/elle prenait",
+      "il/elle": "il prenait",
       "nous": "nous prenions",
       "vous": "vous preniez",
-      "ils/elles": "ils/elles prenaient"
+      "ils/elles": "ils prenaient"
     },
     "futur simple": {
       "je": "je prendrai",
       "tu": "tu prendras",
-      "il/elle": "il/elle prendra",
+      "il/elle": "il prendra",
       "nous": "nous prendrons",
       "vous": "vous prendrez",
-      "ils/elles": "ils/elles prendront"
+      "ils/elles": "ils prendront"
     },
     "conditionnel": {
       "je": "je prendrais",
       "tu": "tu prendrais",
-      "il/elle": "il/elle prendrait",
+      "il/elle": "il prendrait",
       "nous": "nous prendrions",
       "vous": "vous prendriez",
-      "ils/elles": "ils/elles prendraient"
+      "ils/elles": "ils prendraient"
     }
   },
   "v014": {
     "présent": {
       "je": "je donne",
       "tu": "tu donnes",
-      "il/elle": "il/elle donne",
+      "il/elle": "il donne",
       "nous": "nous donnons",
       "vous": "vous donnez",
-      "ils/elles": "ils/elles donnent"
+      "ils/elles": "ils donnent"
     },
     "passé composé": {
       "je": "j'ai donné",
       "tu": "tu as donné",
-      "il/elle": "il/elle a donné",
+      "il/elle": "il a donné",
       "nous": "nous avons donné",
       "vous": "vous avez donné",
-      "ils/elles": "ils/elles ont donné"
+      "ils/elles": "ils ont donné"
     },
     "imparfait": {
       "je": "je donnais",
       "tu": "tu donnais",
-      "il/elle": "il/elle donnait",
+      "il/elle": "il donnait",
       "nous": "nous donnions",
       "vous": "vous donniez",
-      "ils/elles": "ils/elles donnaient"
+      "ils/elles": "ils donnaient"
     },
     "futur simple": {
       "je": "je donnerai",
       "tu": "tu donneras",
-      "il/elle": "il/elle donnera",
+      "il/elle": "il donnera",
       "nous": "nous donnerons",
       "vous": "vous donnerez",
-      "ils/elles": "ils/elles donneront"
+      "ils/elles": "ils donneront"
     },
     "conditionnel": {
       "je": "je donnerais",
       "tu": "tu donnerais",
-      "il/elle": "il/elle donnerait",
+      "il/elle": "il donnerait",
       "nous": "nous donnerions",
       "vous": "vous donneriez",
-      "ils/elles": "ils/elles donneraient"
+      "ils/elles": "ils donneraient"
     }
   },
   "v015": {
     "présent": {
       "je": "je sais",
       "tu": "tu sais",
-      "il/elle": "il/elle sait",
+      "il/elle": "il sait",
       "nous": "nous savons",
       "vous": "vous savez",
-      "ils/elles": "ils/elles savent"
+      "ils/elles": "ils savent"
     },
     "passé composé": {
       "je": "j'ai su",
       "tu": "tu as su",
-      "il/elle": "il/elle a su",
+      "il/elle": "il a su",
       "nous": "nous avons su",
       "vous": "vous avez su",
-      "ils/elles": "ils/elles ont su"
+      "ils/elles": "ils ont su"
     },
     "imparfait": {
       "je": "je savais",
       "tu": "tu savais",
-      "il/elle": "il/elle savait",
+      "il/elle": "il savait",
       "nous": "nous savions",
       "vous": "vous saviez",
-      "ils/elles": "ils/elles savaient"
+      "ils/elles": "ils savaient"
     },
     "futur simple": {
       "je": "je saurai",
       "tu": "tu sauras",
-      "il/elle": "il/elle saura",
+      "il/elle": "il saura",
       "nous": "nous saurons",
       "vous": "vous saurez",
-      "ils/elles": "ils/elles sauront"
+      "ils/elles": "ils sauront"
     },
     "conditionnel": {
       "je": "je saurais",
       "tu": "tu saurais",
-      "il/elle": "il/elle saurait",
+      "il/elle": "il saurait",
       "nous": "nous saurions",
       "vous": "vous sauriez",
-      "ils/elles": "ils/elles sauraient"
+      "ils/elles": "ils sauraient"
     }
   },
   "v016": {
     "présent": {
       "je": "je vois",
       "tu": "tu vois",
-      "il/elle": "il/elle voit",
+      "il/elle": "il voit",
       "nous": "nous voyons",
       "vous": "vous voyez",
-      "ils/elles": "ils/elles voient"
+      "ils/elles": "ils voient"
     },
     "passé composé": {
       "je": "j'ai vu",
       "tu": "tu as vu",
-      "il/elle": "il/elle a vu",
+      "il/elle": "il a vu",
       "nous": "nous avons vu",
       "vous": "vous avez vu",
-      "ils/elles": "ils/elles ont vu"
+      "ils/elles": "ils ont vu"
     },
     "imparfait": {
       "je": "je voyais",
       "tu": "tu voyais",
-      "il/elle": "il/elle voyait",
+      "il/elle": "il voyait",
       "nous": "nous voyions",
       "vous": "vous voyiez",
-      "ils/elles": "ils/elles voyaient"
+      "ils/elles": "ils voyaient"
     },
     "futur simple": {
       "je": "je verrai",
       "tu": "tu verras",
-      "il/elle": "il/elle verra",
+      "il/elle": "il verra",
       "nous": "nous verrons",
       "vous": "vous verrez",
-      "ils/elles": "ils/elles verront"
+      "ils/elles": "ils verront"
     },
     "conditionnel": {
       "je": "je verrais",
       "tu": "tu verrais",
-      "il/elle": "il/elle verrait",
+      "il/elle": "il verrait",
       "nous": "nous verrions",
       "vous": "vous verriez",
-      "ils/elles": "ils/elles verraient"
+      "ils/elles": "ils verraient"
     }
   },
   "v017": {
     "présent": {
       "je": "je dors",
       "tu": "tu dors",
-      "il/elle": "il/elle dort",
+      "il/elle": "il dort",
       "nous": "nous dormons",
       "vous": "vous dormez",
-      "ils/elles": "ils/elles dorment"
+      "ils/elles": "ils dorment"
     },
     "passé composé": {
       "je": "j'ai dormi",
       "tu": "tu as dormi",
-      "il/elle": "il/elle a dormi",
+      "il/elle": "il a dormi",
       "nous": "nous avons dormi",
       "vous": "vous avez dormi",
-      "ils/elles": "ils/elles ont dormi"
+      "ils/elles": "ils ont dormi"
     },
     "imparfait": {
       "je": "je dormais",
       "tu": "tu dormais",
-      "il/elle": "il/elle dormait",
+      "il/elle": "il dormait",
       "nous": "nous dormions",
       "vous": "vous dormiez",
-      "ils/elles": "ils/elles dormaient"
+      "ils/elles": "ils dormaient"
     },
     "futur simple": {
       "je": "je dormirai",
       "tu": "tu dormiras",
-      "il/elle": "il/elle dormira",
+      "il/elle": "il dormira",
       "nous": "nous dormirons",
       "vous": "vous dormirez",
-      "ils/elles": "ils/elles dormiront"
+      "ils/elles": "ils dormiront"
     },
     "conditionnel": {
       "je": "je dormirais",
       "tu": "tu dormirais",
-      "il/elle": "il/elle dormirait",
+      "il/elle": "il dormirait",
       "nous": "nous dormirions",
       "vous": "vous dormiriez",
-      "ils/elles": "ils/elles dormiraient"
+      "ils/elles": "ils dormiraient"
     }
   },
   "v018": {
     "présent": {
       "je": "je travaille",
       "tu": "tu travailles",
-      "il/elle": "il/elle travaille",
+      "il/elle": "il travaille",
       "nous": "nous travaillons",
       "vous": "vous travaillez",
-      "ils/elles": "ils/elles travaillent"
+      "ils/elles": "ils travaillent"
     },
     "passé composé": {
       "je": "j'ai travaillé",
       "tu": "tu as travaillé",
-      "il/elle": "il/elle a travaillé",
+      "il/elle": "il a travaillé",
       "nous": "nous avons travaillé",
       "vous": "vous avez travaillé",
-      "ils/elles": "ils/elles ont travaillé"
+      "ils/elles": "ils ont travaillé"
     },
     "imparfait": {
       "je": "je travaillais",
       "tu": "tu travaillais",
-      "il/elle": "il/elle travaillait",
+      "il/elle": "il travaillait",
       "nous": "nous travaillions",
       "vous": "vous travailliez",
-      "ils/elles": "ils/elles travaillaient"
+      "ils/elles": "ils travaillaient"
     },
     "futur simple": {
       "je": "je travaillerai",
       "tu": "tu travailleras",
-      "il/elle": "il/elle travaillera",
+      "il/elle": "il travaillera",
       "nous": "nous travaillerons",
       "vous": "vous travaillerez",
-      "ils/elles": "ils/elles travailleront"
+      "ils/elles": "ils travailleront"
     },
     "conditionnel": {
       "je": "je travaillerais",
       "tu": "tu travaillerais",
-      "il/elle": "il/elle travaillerait",
+      "il/elle": "il travaillerait",
       "nous": "nous travaillerions",
       "vous": "vous travailleriez",
-      "ils/elles": "ils/elles travailleraient"
+      "ils/elles": "ils travailleraient"
     }
   },
   "v019": {
     "présent": {
       "je": "j'achète",
       "tu": "tu achètes",
-      "il/elle": "il/elle achète",
+      "il/elle": "il achète",
       "nous": "nous achetons",
       "vous": "vous achetez",
-      "ils/elles": "ils/elles achètent"
+      "ils/elles": "ils achètent"
     },
     "passé composé": {
       "je": "j'ai acheté",
       "tu": "tu as acheté",
-      "il/elle": "il/elle a acheté",
+      "il/elle": "il a acheté",
       "nous": "nous avons acheté",
       "vous": "vous avez acheté",
-      "ils/elles": "ils/elles ont acheté"
+      "ils/elles": "ils ont acheté"
     },
     "imparfait": {
       "je": "j'achetais",
       "tu": "tu achetais",
-      "il/elle": "il/elle achetait",
+      "il/elle": "il achetait",
       "nous": "nous achetions",
       "vous": "vous achetiez",
-      "ils/elles": "ils/elles achetaient"
+      "ils/elles": "ils achetaient"
     },
     "futur simple": {
       "je": "j'achèterai",
       "tu": "tu achèteras",
-      "il/elle": "il/elle achètera",
+      "il/elle": "il achètera",
       "nous": "nous achèterons",
       "vous": "vous achèterez",
-      "ils/elles": "ils/elles achèteront"
+      "ils/elles": "ils achèteront"
     },
     "conditionnel": {
       "je": "j'achèterais",
       "tu": "tu achèterais",
-      "il/elle": "il/elle achèterait",
+      "il/elle": "il achèterait",
       "nous": "nous achèterions",
       "vous": "vous achèteriez",
-      "ils/elles": "ils/elles achèteraient"
+      "ils/elles": "ils achèteraient"
     }
   },
   "v020": {
     "présent": {
       "je": "je lis",
       "tu": "tu lis",
-      "il/elle": "il/elle lit",
+      "il/elle": "il lit",
       "nous": "nous lisons",
       "vous": "vous lisez",
-      "ils/elles": "ils/elles lisent"
+      "ils/elles": "ils lisent"
     },
     "passé composé": {
       "je": "j'ai lu",
       "tu": "tu as lu",
-      "il/elle": "il/elle a lu",
+      "il/elle": "il a lu",
       "nous": "nous avons lu",
       "vous": "vous avez lu",
-      "ils/elles": "ils/elles ont lu"
+      "ils/elles": "ils ont lu"
     },
     "imparfait": {
       "je": "je lisais",
       "tu": "tu lisais",
-      "il/elle": "il/elle lisait",
+      "il/elle": "il lisait",
       "nous": "nous lisions",
       "vous": "vous lisiez",
-      "ils/elles": "ils/elles lisaient"
+      "ils/elles": "ils lisaient"
     },
     "futur simple": {
       "je": "je lirai",
       "tu": "tu liras",
-      "il/elle": "il/elle lira",
+      "il/elle": "il lira",
       "nous": "nous lirons",
       "vous": "vous lirez",
-      "ils/elles": "ils/elles liront"
+      "ils/elles": "ils liront"
     },
     "conditionnel": {
       "je": "je lirais",
       "tu": "tu lirais",
-      "il/elle": "il/elle lirait",
+      "il/elle": "il lirait",
       "nous": "nous lirions",
       "vous": "vous liriez",
-      "ils/elles": "ils/elles liraient"
+      "ils/elles": "ils liraient"
     }
   }
 }
