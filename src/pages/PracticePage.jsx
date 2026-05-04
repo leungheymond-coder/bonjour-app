@@ -7,6 +7,7 @@ import FolderPopover from '@/components/FolderPopover'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { cn } from '@/lib/utils'
 import { categories } from '@/data/vocabulary'
+import ConjugationView from './ConjugationView'
 
 const SPEEDS = [
   { value: 0.75, label: '0.75×' },
@@ -1000,6 +1001,8 @@ export default function PracticePage() {
     selectedType = 'all',
     selectedLevel = 'all',
     mode = 'listening',
+    verbSource = 'all',
+    selectedTenses = ['présent', 'passé composé', 'imparfait', 'futur simple', 'conditionnel'],
   } = location.state ?? {}
 
   const [activeQueue, setActiveQueue] = useState(queue)
@@ -1029,6 +1032,18 @@ export default function PracticePage() {
     selectedLevel,
     onPracticeAgain: handlePracticeAgain,
     onPracticeWrongOnly: handlePracticeWrongOnly,
+  }
+
+  if (mode === 'conjugation') {
+    return (
+      <ConjugationView
+        key={restartKey}
+        queue={activeQueue}
+        verbSource={verbSource}
+        selectedTenses={selectedTenses}
+        onPracticeAgain={handlePracticeAgain}
+      />
+    )
   }
 
   return mode === 'dictation'

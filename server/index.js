@@ -95,24 +95,37 @@ Rules:
   }
 })
 
-// ─── POST /api/tts — OpenAI TTS proxy ────────────────────────────────────────
+// ─── POST /api/tts — Google Cloud TTS (Chirp3 HD) ────────────────────────────
 
 app.post('/api/tts', async (req, res) => {
-  const { text, speed = 0.75, voice = 'nova' } = req.body
-  const VALID_VOICES = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
-  const safeVoice = VALID_VOICES.includes(voice) ? voice : 'nova'
-
+  const { text } = req.body
   if (!text) return res.status(400).json({ error: 'Missing required field: text.' })
+  if (!process.env.GOOGLE_TTS_API_KEY) {
+    return res.status(500).json({ error: 'GOOGLE_TTS_API_KEY not configured in server/.env.' })
+  }
 
   try {
-    const mp3 = await openai.audio.speech.create({
-      model: 'tts-1',
-      voice: safeVoice,
-      input: text,
-      speed: Math.min(Math.max(Number(speed), 0.25), 4.0),
-    })
+    const response = await fetch(
+      `https://texttospeech.googleapis.com/v1/text:synthesize?key=${process.env.GOOGLE_TTS_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input: { text },
+          voice: { languageCode: 'fr-FR', name: 'fr-FR-Chirp3-HD-Aoede' },
+          audioConfig: { audioEncoding: 'MP3' },
+        }),
+      }
+    )
 
-    const buffer = Buffer.from(await mp3.arrayBuffer())
+    if (!response.ok) {
+      const errBody = await response.json().catch(() => ({}))
+      console.error('[/api/tts]', errBody)
+      return res.status(500).json({ error: 'Failed to generate audio.' })
+    }
+
+    const data = await response.json()
+    const buffer = Buffer.from(data.audioContent, 'base64')
     res.set('Content-Type', 'audio/mpeg')
     res.set('Content-Length', buffer.length)
     res.send(buffer)
@@ -363,6 +376,59 @@ Rules:
   } catch (err) {
     console.error('[/api/explore]', err.message)
     return res.status(500).json({ error: 'Failed to generate vocabulary.' })
+  }
+})
+
+// ─── POST /api/conjugate — conjugate a custom verb (5 tenses × 6 pronouns) ───
+
+app.post('/api/conjugate', aiLimiter, async (req, res) => {
+  const { french, english } = req.body
+  if (!french || typeof french !== 'string' || french.length > 200) {
+    return res.status(400).json({ error: 'Missing or invalid french field.' })
+  }
+
+  const prompt = `You are a French language expert. Conjugate this verb into 5 tenses with all 6 pronoun forms.
+
+Verb: "${french}" (${english ?? 'unknown meaning'})
+
+Rules:
+- Every value must include the pronoun (e.g. "tu as fait" not "as fait")
+- Use correct elision for je before vowels (e.g. "j'ai" not "je ai")
+- For "il/elle" forms, use only "il" in the value (e.g. "il est" not "il/elle est")
+- For "ils/elles" forms, use only "ils" in the value (e.g. "ils sont" not "ils/elles sont")
+- Keys must be exactly: je, tu, il/elle, nous, vous, ils/elles
+- Tense keys must be exactly: présent, passé composé, imparfait, futur simple, conditionnel
+
+Return ONLY valid JSON, no markdown:
+{
+  "présent":       { "je": "...", "tu": "...", "il/elle": "...", "nous": "...", "vous": "...", "ils/elles": "..." },
+  "passé composé": { "je": "...", "tu": "...", "il/elle": "...", "nous": "...", "vous": "...", "ils/elles": "..." },
+  "imparfait":     { "je": "...", "tu": "...", "il/elle": "...", "nous": "...", "vous": "...", "ils/elles": "..." },
+  "futur simple":  { "je": "...", "tu": "...", "il/elle": "...", "nous": "...", "vous": "...", "ils/elles": "..." },
+  "conditionnel":  { "je": "...", "tu": "...", "il/elle": "...", "nous": "...", "vous": "...", "ils/elles": "..." }
+}`
+
+  try {
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1200,
+      messages: [{ role: 'user', content: prompt }],
+    })
+
+    const raw = message.content?.[0]?.text?.trim() ?? ''
+    const match = raw.match(/\{[\s\S]*\}/)
+    if (!match) return res.status(500).json({ error: 'Could not parse model response as JSON.' })
+
+    const parsed = JSON.parse(match[0])
+    const REQUIRED_TENSES = ['présent', 'passé composé', 'imparfait', 'futur simple', 'conditionnel']
+    for (const tense of REQUIRED_TENSES) {
+      if (!parsed[tense]) return res.status(500).json({ error: `Missing tense: ${tense}` })
+    }
+
+    return res.json({ conjugations: parsed })
+  } catch (err) {
+    console.error('[/api/conjugate]', err.message)
+    return res.status(500).json({ error: 'Failed to generate conjugations.' })
   }
 })
 

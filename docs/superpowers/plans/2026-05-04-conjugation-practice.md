@@ -1,0 +1,1275 @@
+# Conjugation Practice Mode — Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Add a "Conjugation" mode to the Practice filter page so users can hear a conjugated verb form, then reveal the infinitive, tense, and meaning — one random tense+pronoun per verb per session.
+
+**Architecture:** A new `ConjugationView` component (mirrors `DictationView` pattern) is wired into `PracticePage` as a third mode. `ListenPage` gains a conjugation filter panel (verb source + tense pills) and a new `buildConjugationQueue` function. Static conjugation data lives in `src/data/conjugations.js`, generated once by a build script. Audio is fetched on-demand via the existing `/api/tts` endpoint, cached in-memory per session.
+
+**Tech Stack:** React 19, Vite, Tailwind CSS v4, Express, Anthropic Claude API (conjugation generation), OpenAI TTS (audio)
+
+---
+
+## File Map
+
+| File | Action | Responsibility |
+|---|---|---|
+| `scripts/generate-conjugations.js` | Create | One-time CLI script — calls Claude, writes `conjugations.js` |
+| `src/data/conjugations.js` | Create (generated) | Static conjugation table for 20 built-in verbs |
+| `server/index.js` | Modify | Add `POST /api/conjugate` for custom verb conjugations |
+| `src/pages/ListenPage.jsx` | Modify | Add Conjugation mode card, verb source + tense filters, `buildConjugationQueue` |
+| `src/pages/ConjugationView.jsx` | Create | Session view: audio pre-fetch, card reveal, auto-advance, success screen |
+| `src/pages/PracticePage.jsx` | Modify | Import ConjugationView, dispatch on `mode === 'conjugation'`, update SuccessScreen copy |
+
+---
+
+## Task 1: Generate conjugations.js
+
+**Files:**
+- Create: `scripts/generate-conjugations.js`
+- Create (output): `src/data/conjugations.js`
+
+- [ ] **Step 1.1: Write the generation script**
+
+Create `scripts/generate-conjugations.js`:
+
+```js
+// Run: node scripts/generate-conjugations.js
+// Reads ANTHROPIC_API_KEY from server/.env
+// Writes: src/data/conjugations.js
+
+import dotenv from 'dotenv'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+import { writeFileSync } from 'fs'
+import Anthropic from '@anthropic-ai/sdk'
+import { vocabulary } from '../src/data/vocabulary.js'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+dotenv.config({ path: join(__dirname, '..', 'server', '.env') })
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
+const verbs = vocabulary.filter(w => w.category === 'verbs')
+
+const verbList = verbs
+  .map(v => `${v.id}: ${v.french} (${v.english})`)
+  .join('\n')
+
+const prompt = `You are a French language expert. Conjugate each verb into 5 tenses.
+
+For EVERY pronoun form, include the full string with the pronoun:
+- Use correct elision: "j'ai" not "je ai", "j'étais" not "je étais"
+- Use "il/elle" and "ils/elles" as keys (not "il" or "ils" separately)
+- All values must be the complete conjugated string (pronoun + verb)
+
+Return ONLY valid JSON, no markdown, no explanation:
+{
+  "v001": {
+    "présent":       { "je": "je suis", "tu": "tu es", "il/elle": "il est", "nous": "nous sommes", "vous": "vous êtes", "ils/elles": "ils sont" },
+    "passé composé": { "je": "j'ai été", "tu": "tu as été", "il/elle": "il a été", "nous": "nous avons été", "vous": "vous avez été", "ils/elles": "ils ont été" },
+    "imparfait":     { "je": "j'étais", "tu": "tu étais", "il/elle": "il était", "nous": "nous étions", "vous": "vous étiez", "ils/elles": "ils étaient" },
+    "futur simple":  { "je": "je serai", "tu": "tu seras", "il/elle": "il sera", "nous": "nous serons", "vous": "vous serez", "ils/elles": "ils seront" },
+    "conditionnel":  { "je": "je serais", "tu": "tu serais", "il/elle": "il serait", "nous": "nous serions", "vous": "vous seriez", "ils/elles": "ils seraient" }
+  }
+}
+
+Verbs to conjugate:
+${verbList}`
+
+async function main() {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error('Error: ANTHROPIC_API_KEY not found in server/.env')
+    process.exit(1)
+  }
+
+  console.log(`Generating conjugations for ${verbs.length} verbs…`)
+
+  const message = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 8000,
+    messages: [{ role: 'user', content: prompt }],
+  })
+
+  const raw = message.content?.[0]?.text?.trim() ?? ''
+  const match = raw.match(/\{[\s\S]*\}/)
+  if (!match) {
+    console.error('Failed to parse JSON from model response')
+    console.error(raw.slice(0, 500))
+    process.exit(1)
+  }
+
+  const data = JSON.parse(match[0])
+
+  // Validate: check all expected verb IDs are present
+  const missing = verbs.filter(v => !data[v.id])
+  if (missing.length > 0) {
+    console.warn('Missing verb IDs:', missing.map(v => v.id).join(', '))
+  }
+
+  const output = `// Auto-generated by scripts/generate-conjugations.js — do not edit manually.
+// Re-run the script after adding new built-in verbs.
+// Each value is the full conjugated string including pronoun (e.g. "tu as fait").
+
+export const conjugations = ${JSON.stringify(data, null, 2)}
+`
+
+  const outPath = join(__dirname, '..', 'src', 'data', 'conjugations.js')
+  writeFileSync(outPath, output)
+  console.log(`✓ Written to src/data/conjugations.js (${verbs.length} verbs)`)
+}
+
+main().catch(err => { console.error(err); process.exit(1) })
+```
+
+- [ ] **Step 1.2: Run the script**
+
+```bash
+node scripts/generate-conjugations.js
+```
+
+Expected output:
+```
+Generating conjugations for 20 verbs…
+✓ Written to src/data/conjugations.js (20 verbs)
+```
+
+- [ ] **Step 1.3: Spot-check the output**
+
+Open `src/data/conjugations.js` and verify:
+- All 20 verb IDs present (v001–v020)
+- Each verb has all 5 tense keys
+- A few spot-checks: `conjugations["v004"]["passé composé"]["tu"]` should be `"tu as fait"`, `conjugations["v001"]["présent"]["nous"]` should be `"nous sommes"`
+- Every value includes the pronoun (no bare verb forms like `"as fait"` or `"est"`)
+
+- [ ] **Step 1.4: Commit**
+
+```bash
+git add scripts/generate-conjugations.js src/data/conjugations.js
+git commit -m "feat: generate static conjugation table for 20 built-in verbs"
+```
+
+---
+
+## Task 2: Add /api/conjugate endpoint
+
+**Files:**
+- Modify: `server/index.js` (add after the `/api/explore` block, before the static serving section)
+
+- [ ] **Step 2.1: Add the endpoint**
+
+In `server/index.js`, insert after line 367 (end of `/api/explore`) and before line 369 (`// ─── Serve Vite build`):
+
+```js
+// ─── POST /api/conjugate — conjugate a custom verb (5 tenses × 6 pronouns) ───
+
+app.post('/api/conjugate', aiLimiter, async (req, res) => {
+  const { french, english } = req.body
+  if (!french || typeof french !== 'string' || french.length > 200) {
+    return res.status(400).json({ error: 'Missing or invalid french field.' })
+  }
+
+  const prompt = `You are a French language expert. Conjugate this verb into 5 tenses with all 6 pronoun forms.
+
+Verb: "${french}" (${english ?? 'unknown meaning'})
+
+Rules:
+- Every value must include the pronoun (e.g. "tu as fait" not "as fait")
+- Use correct elision for je before vowels (e.g. "j'ai" not "je ai")
+- Keys must be exactly: je, tu, il/elle, nous, vous, ils/elles
+- Tense keys must be exactly: présent, passé composé, imparfait, futur simple, conditionnel
+
+Return ONLY valid JSON, no markdown:
+{
+  "présent":       { "je": "...", "tu": "...", "il/elle": "...", "nous": "...", "vous": "...", "ils/elles": "..." },
+  "passé composé": { "je": "...", "tu": "...", "il/elle": "...", "nous": "...", "vous": "...", "ils/elles": "..." },
+  "imparfait":     { "je": "...", "tu": "...", "il/elle": "...", "nous": "...", "vous": "...", "ils/elles": "..." },
+  "futur simple":  { "je": "...", "tu": "...", "il/elle": "...", "nous": "...", "vous": "...", "ils/elles": "..." },
+  "conditionnel":  { "je": "...", "tu": "...", "il/elle": "...", "nous": "...", "vous": "...", "ils/elles": "..." }
+}`
+
+  try {
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1200,
+      messages: [{ role: 'user', content: prompt }],
+    })
+
+    const raw = message.content?.[0]?.text?.trim() ?? ''
+    const match = raw.match(/\{[\s\S]*\}/)
+    if (!match) return res.status(500).json({ error: 'Could not parse model response as JSON.' })
+
+    const parsed = JSON.parse(match[0])
+    const REQUIRED_TENSES = ['présent', 'passé composé', 'imparfait', 'futur simple', 'conditionnel']
+    for (const tense of REQUIRED_TENSES) {
+      if (!parsed[tense]) return res.status(500).json({ error: `Missing tense: ${tense}` })
+    }
+
+    return res.json({ conjugations: parsed })
+  } catch (err) {
+    console.error('[/api/conjugate]', err.message)
+    return res.status(500).json({ error: 'Failed to generate conjugations.' })
+  }
+})
+```
+
+- [ ] **Step 2.2: Smoke-test the endpoint**
+
+Start the dev server (`npm run dev` in a separate terminal, then `node server/index.js` in another — or use whatever dev setup is running). Then:
+
+```bash
+curl -s -X POST http://localhost:3001/api/conjugate \
+  -H 'Content-Type: application/json' \
+  -d '{"french":"courir","english":"to run"}' | head -c 400
+```
+
+Expected: JSON with `conjugations` key containing 5 tense objects, each with 6 pronoun keys. Each value should start with the pronoun (e.g. `"je cours"`).
+
+- [ ] **Step 2.3: Commit**
+
+```bash
+git add server/index.js
+git commit -m "feat: add /api/conjugate endpoint for custom verb conjugation"
+```
+
+---
+
+## Task 3: Update ListenPage — Conjugation mode UI + queue builder
+
+**Files:**
+- Modify: `src/pages/ListenPage.jsx`
+
+- [ ] **Step 3.1: Add conjugations import and constants**
+
+At the top of `src/pages/ListenPage.jsx`, add after the existing imports:
+
+```js
+import { conjugations } from '@/data/conjugations'
+```
+
+After the existing `TYPE_OPTIONS` constant (line 51), add:
+
+```js
+const TENSE_OPTIONS = [
+  { id: 'présent',       label: 'Présent' },
+  { id: 'passé composé', label: 'Passé Composé' },
+  { id: 'imparfait',     label: 'Imparfait' },
+  { id: 'futur simple',  label: 'Futur Simple' },
+  { id: 'conditionnel',  label: 'Conditionnel' },
+]
+
+const PRONOUNS = ['je', 'tu', 'il/elle', 'nous', 'vous', 'ils/elles']
+```
+
+- [ ] **Step 3.2: Add buildConjugationQueue function**
+
+Add this function after `buildQueue` (after line 43), before `const TYPE_OPTIONS`:
+
+```js
+function buildConjugationQueue(verbSource, selectedTenses, collections, customWords, allConjugations, customConjugationsCache) {
+  const tenseKeys = [...selectedTenses]
+  if (tenseKeys.length === 0) return []
+
+  let verbs
+  if (verbSource === 'all') {
+    verbs = vocabulary.filter(w => w.category === 'verbs')
+  } else {
+    const folderIds = collections[verbSource]?.ids ?? []
+    const allWords = [...vocabulary, ...customWords]
+    verbs = allWords.filter(w => folderIds.includes(w.id))
+  }
+
+  const queue = []
+  for (const verb of verbs) {
+    const data = allConjugations[verb.id] ?? customConjugationsCache[verb.id]
+    if (!data) continue
+
+    const randomTense   = tenseKeys[Math.floor(Math.random() * tenseKeys.length)]
+    const randomPronoun = PRONOUNS[Math.floor(Math.random() * PRONOUNS.length)]
+    const conjugated    = data[randomTense]?.[randomPronoun]
+    if (!conjugated) continue
+
+    queue.push({
+      id:        `${verb.id}_${randomTense}_${randomPronoun}`,
+      wordId:    verb.id,
+      tense:     randomTense,
+      pronoun:   randomPronoun,
+      conjugated,
+      french:    verb.french,
+      english:   verb.english,
+      chinese:   verb.chinese,
+      isCustom:  verb.isCustom ?? false,
+    })
+  }
+
+  for (let i = queue.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[queue[i], queue[j]] = [queue[j], queue[i]]
+  }
+  return queue
+}
+```
+
+- [ ] **Step 3.3: Add state for conjugation filters**
+
+Inside `ListenPage()`, after the existing `const [mode, setMode] = useState(...)` line, add:
+
+```js
+const [verbSource,      setVerbSource]      = useState(restored.verbSource ?? 'all')
+const [selectedTenses,  setSelectedTenses]  = useState(
+  () => new Set(restored.selectedTenses ?? TENSE_OPTIONS.map(t => t.id))
+)
+const [isLoadingConjugations, setIsLoadingConjugations] = useState(false)
+
+function toggleTense(id) {
+  setSelectedTenses(prev => {
+    if (prev.size === 1 && prev.has(id)) return prev  // keep at least one
+    const next = new Set(prev)
+    next.has(id) ? next.delete(id) : next.add(id)
+    return next
+  })
+}
+```
+
+- [ ] **Step 3.4: Add conjugation queue computation and custom cache helper**
+
+Replace the existing `const queue = buildQueue(...)` block (lines 77–84) with:
+
+```js
+function loadCustomConjugationsCache(verbs) {
+  const cache = {}
+  for (const v of verbs) {
+    if (!v.isCustom) continue
+    const stored = localStorage.getItem(`conjugation_${v.id}`)
+    if (stored) {
+      try { cache[v.id] = JSON.parse(stored) } catch {}
+    }
+  }
+  return cache
+}
+
+const customConjugationsCache = (() => {
+  if (mode !== 'conjugation') return {}
+  const verbSource_ = verbSource
+  let verbs
+  if (verbSource_ === 'all') {
+    verbs = vocabulary.filter(w => w.category === 'verbs')
+  } else {
+    const folderIds = collections[verbSource_]?.ids ?? []
+    verbs = [...vocabulary, ...customWords].filter(w => folderIds.includes(w.id))
+  }
+  return loadCustomConjugationsCache(verbs)
+})()
+
+const queue = mode === 'conjugation'
+  ? buildConjugationQueue(verbSource, selectedTenses, collections, customWords, conjugations, customConjugationsCache)
+  : buildQueue([...selectedGroups], selectedType, selectedLevel, collections, customWords, customizations)
+```
+
+- [ ] **Step 3.5: Update handleStart for conjugation mode**
+
+Replace the existing `handleStart` function (lines 86–97) with:
+
+```js
+async function handleStart() {
+  if (mode !== 'conjugation') {
+    if (queue.length === 0) return
+    navigate('/practice', {
+      state: { queue, selectedGroups: [...selectedGroups], selectedType, selectedLevel, mode },
+    })
+    return
+  }
+
+  if (queue.length === 0) return
+
+  // Pre-fetch conjugations for any custom verbs that don't have cached data
+  let verbs = []
+  if (verbSource === 'all') {
+    verbs = vocabulary.filter(w => w.category === 'verbs')
+  } else {
+    const folderIds = collections[verbSource]?.ids ?? []
+    verbs = [...vocabulary, ...customWords].filter(w => folderIds.includes(w.id))
+  }
+  const missingCustom = verbs.filter(v => v.isCustom && !localStorage.getItem(`conjugation_${v.id}`))
+
+  if (missingCustom.length > 0) {
+    setIsLoadingConjugations(true)
+    await Promise.all(
+      missingCustom.map(async (v) => {
+        try {
+          const res = await fetch('/api/conjugate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ french: v.french, english: v.english }),
+          })
+          const data = await res.json()
+          if (data.conjugations) {
+            localStorage.setItem(`conjugation_${v.id}`, JSON.stringify(data.conjugations))
+          }
+        } catch {}
+      })
+    )
+    setIsLoadingConjugations(false)
+  }
+
+  // Re-build queue now that all custom conjugations are cached
+  const finalCache = loadCustomConjugationsCache(verbs)
+  const finalQueue = buildConjugationQueue(verbSource, selectedTenses, collections, customWords, conjugations, finalCache)
+  if (finalQueue.length === 0) return
+
+  navigate('/practice', {
+    state: { queue: finalQueue, mode: 'conjugation', verbSource, selectedTenses: [...selectedTenses] },
+  })
+}
+```
+
+- [ ] **Step 3.6: Add Conjugation mode card to the mode selector UI**
+
+In the JSX, find the mode cards array (the two `{ id: 'listening', ... }` and `{ id: 'dictation', ... }` objects in the `.map()` on line ~119). Replace that entire `{[ ... ].map(m => ...)}` block with:
+
+```jsx
+{[
+  { id: 'listening',    icon: '🎧', label: 'Listening',    desc: 'Hear audio, reveal meaning' },
+  { id: 'dictation',    icon: '✍️', label: 'Dictation',    desc: 'See meaning, type French' },
+  { id: 'conjugation',  icon: '🔀', label: 'Conjugation',  desc: 'Hear a conjugated form, identify it' },
+].map(m => (
+  <button
+    key={m.id}
+    onClick={() => setMode(m.id)}
+    className={cn(
+      'flex-1 flex flex-col items-start gap-1.5 p-3 rounded-2xl border-2 transition-all duration-200 text-left',
+      mode === m.id
+        ? 'border-primary bg-primary/[0.10]'
+        : 'border-border bg-card hover:opacity-80'
+    )}
+  >
+    <span
+      className="w-9 h-9 rounded-xl flex items-center justify-center text-[18px] shrink-0"
+      style={mode === m.id
+        ? { background: 'var(--btn-primary-gradient)' }
+        : { background: 'rgba(255,255,255,0.08)' }
+      }
+    >
+      {m.icon}
+    </span>
+    <p className="font-bold text-foreground text-sm">{m.label}</p>
+    <p className="text-muted-foreground text-[11px] leading-tight">{m.desc}</p>
+  </button>
+))}
+```
+
+- [ ] **Step 3.7: Conditionally show/hide existing filter sections**
+
+Wrap the entire "Type" section (label + pills, lines ~149–167) in `{mode !== 'conjugation' && (`:
+
+```jsx
+{mode !== 'conjugation' && (
+  <>
+    {/* Type filter */}
+    <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground mb-1.5">
+      Type
+    </p>
+    <div className="flex gap-2 mb-3">
+      {TYPE_OPTIONS.map((opt) => (
+        <button
+          key={opt.id}
+          onClick={() => setSelectedType(opt.id)}
+          className={cn(
+            'px-4 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200',
+            selectedType === opt.id
+              ? 'bg-primary text-primary-foreground border-primary'
+              : 'bg-card text-muted-foreground border-border hover:opacity-80'
+          )}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+
+    {/* Level filter */}
+    <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground mb-1.5">
+      Level
+    </p>
+    <div className="flex gap-2 mb-3">
+      {['all', 'A1', 'A2', 'B1', 'B2'].map((l) => (
+        <button
+          key={l}
+          onClick={() => setSelectedLevel(l)}
+          className={cn(
+            'px-4 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200',
+            selectedLevel === l
+              ? 'bg-primary text-primary-foreground border-primary'
+              : 'bg-card text-muted-foreground border-border hover:opacity-80'
+          )}
+        >
+          {l === 'all' ? 'All' : l}
+        </button>
+      ))}
+    </div>
+
+    {/* Folders */}
+    <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground mb-1.5">
+      Folders
+    </p>
+    <div className="flex flex-wrap gap-2 mb-3">
+      {specialGroups.map((g) => (
+        <button
+          key={g.id}
+          onClick={() => toggleGroup(g.id)}
+          className={cn(
+            'px-4 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200',
+            selectedGroups.has(g.id)
+              ? 'bg-primary text-primary-foreground border-primary'
+              : 'bg-card text-muted-foreground border-border hover:opacity-80'
+          )}
+        >
+          {g.label}
+        </button>
+      ))}
+    </div>
+
+    {/* Categories */}
+    <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground mb-1.5">
+      Categories
+    </p>
+    <div className="flex flex-wrap gap-2">
+      {categories.map((cat) => (
+        <button
+          key={cat.id}
+          onClick={() => toggleGroup(cat.id)}
+          className={cn(
+            'px-4 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200',
+            selectedGroups.has(cat.id)
+              ? 'bg-primary text-primary-foreground border-primary'
+              : 'bg-card text-muted-foreground border-border hover:opacity-80'
+          )}
+        >
+          {`${cat.emoji} ${cat.label}`}
+        </button>
+      ))}
+    </div>
+  </>
+)}
+```
+
+- [ ] **Step 3.8: Add conjugation filter sections (verb source + tenses)**
+
+Immediately after the closing `}` of the `{mode !== 'conjugation' && ...}` block, add:
+
+```jsx
+{mode === 'conjugation' && (
+  <>
+    {/* Verb source */}
+    <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground mb-1.5">
+      Verbs
+    </p>
+    <div className="flex flex-wrap gap-2 mb-3">
+      <button
+        onClick={() => setVerbSource('all')}
+        className={cn(
+          'px-4 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200',
+          verbSource === 'all'
+            ? 'bg-primary text-primary-foreground border-primary'
+            : 'bg-card text-muted-foreground border-border hover:opacity-80'
+        )}
+      >
+        All verbs
+      </button>
+      {activeFolders
+        .filter(f => (collections[f.id]?.ids?.length ?? 0) > 0)
+        .map(f => (
+          <button
+            key={f.id}
+            onClick={() => setVerbSource(f.id)}
+            className={cn(
+              'px-4 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200',
+              verbSource === f.id
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'bg-card text-muted-foreground border-border hover:opacity-80'
+            )}
+          >
+            📁 {f.name}
+          </button>
+        ))
+      }
+    </div>
+
+    {/* Tenses */}
+    <p className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground mb-1.5">
+      Tenses
+    </p>
+    <div className="flex flex-wrap gap-2">
+      {TENSE_OPTIONS.map(t => (
+        <button
+          key={t.id}
+          onClick={() => toggleTense(t.id)}
+          className={cn(
+            'px-4 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200',
+            selectedTenses.has(t.id)
+              ? 'bg-primary text-primary-foreground border-primary'
+              : 'bg-card text-muted-foreground border-border hover:opacity-80'
+          )}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  </>
+)}
+```
+
+- [ ] **Step 3.9: Update the Start button**
+
+Replace the Start button text (line ~244):
+
+```jsx
+{queue.length === 0
+  ? 'Select at least one group to start'
+  : mode === 'conjugation'
+    ? `Start Conjugation — ${queue.length} card${queue.length === 1 ? '' : 's'} →`
+    : `Start ${mode === 'listening' ? 'Listening' : 'Dictation'} — ${queue.length} word${queue.length === 1 ? '' : 's'} →`
+}
+```
+
+Also disable the button while loading conjugations and show loading state:
+
+```jsx
+<button
+  onClick={handleStart}
+  disabled={queue.length === 0 || isLoadingConjugations}
+  className={cn(
+    'btn-primary w-full transition-all duration-200',
+    (queue.length === 0 || isLoadingConjugations) && 'opacity-40 cursor-not-allowed'
+  )}
+>
+  {isLoadingConjugations
+    ? 'Generating conjugations…'
+    : queue.length === 0
+      ? 'Select at least one group to start'
+      : mode === 'conjugation'
+        ? `Start Conjugation — ${queue.length} card${queue.length === 1 ? '' : 's'} →`
+        : `Start ${mode === 'listening' ? 'Listening' : 'Dictation'} — ${queue.length} word${queue.length === 1 ? '' : 's'} →`
+  }
+</button>
+```
+
+- [ ] **Step 3.10: Verify in browser**
+
+Run `npm run dev`. Navigate to Practice tab. Verify:
+1. Three mode cards shown (Listening, Dictation, Conjugation)
+2. Selecting Conjugation hides Type/Level/Folders/Categories
+3. Verb source pills appear ("All verbs" + any user folders)
+4. Tense pills appear, all 5 selected by default
+5. Clicking a tense pill toggles it; last active tense cannot be deselected
+6. Start button shows card count (should be 20 for "All verbs")
+7. Switching back to Listening restores the original filters
+
+- [ ] **Step 3.11: Commit**
+
+```bash
+git add src/pages/ListenPage.jsx src/data/conjugations.js
+git commit -m "feat: add Conjugation mode UI and queue builder to ListenPage"
+```
+
+---
+
+## Task 4: Create ConjugationView
+
+**Files:**
+- Create: `src/pages/ConjugationView.jsx`
+
+- [ ] **Step 4.1: Create the component file**
+
+Create `src/pages/ConjugationView.jsx`:
+
+```jsx
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useBlocker } from 'react-router-dom'
+import { Volume2, Pause, X, RotateCcw } from 'lucide-react'
+import ConfirmDialog from '@/components/ConfirmDialog'
+import { cn } from '@/lib/utils'
+
+const TENSE_DISPLAY = {
+  'présent':       'Présent',
+  'passé composé': 'Passé Composé',
+  'imparfait':     'Imparfait',
+  'futur simple':  'Futur Simple',
+  'conditionnel':  'Conditionnel',
+}
+
+export default function ConjugationView({ queue, verbSource, selectedTenses, onPracticeAgain }) {
+  const navigate = useNavigate()
+
+  const [index,          setIndex]          = useState(0)
+  const [revealed,       setRevealed]       = useState(false)
+  const [playing,        setPlaying]        = useState(false)
+  const [audioLoading,   setAudioLoading]   = useState(false)
+  const [pressedAction,  setPressedAction]  = useState(null) // 'correct' | 'wrong' | null
+  const [correctCount,   setCorrectCount]   = useState(0)
+  const [showSuccess,    setShowSuccess]    = useState(false)
+  const [quitDialogOpen, setQuitDialogOpen] = useState(false)
+
+  const audioCache   = useRef({})  // { [index]: blobUrl }
+  const audioRef     = useRef(null)
+  const cancelledRef = useRef(false)
+  const isQuitting   = useRef(false)
+  const keyHandlersRef = useRef({})
+
+  const blocker = useBlocker(!showSuccess)
+
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      if (isQuitting.current) blocker.proceed()
+      else setQuitDialogOpen(true)
+    }
+  }, [blocker.state])
+
+  // Audio cleanup on unmount
+  useEffect(() => () => {
+    cancelledRef.current = true
+    if (audioRef.current) {
+      const a = audioRef.current; audioRef.current = null
+      a.onended = null; a.onerror = null; a.pause()
+    }
+    // Revoke all cached blob URLs
+    Object.values(audioCache.current).forEach(url => URL.revokeObjectURL(url))
+  }, [])
+
+  async function fetchTTS(idx) {
+    if (audioCache.current[idx]) return audioCache.current[idx]
+    const item = queue[idx]
+    if (!item) return null
+    try {
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: item.conjugated, speed: 1.0, voice: 'nova' }),
+      })
+      if (!res.ok) return null
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      audioCache.current[idx] = url
+      return url
+    } catch {
+      return null
+    }
+  }
+
+  function stopAudio() {
+    cancelledRef.current = true
+    if (audioRef.current) {
+      const a = audioRef.current; audioRef.current = null
+      a.onended = null; a.onerror = null; a.pause()
+    }
+    setPlaying(false)
+  }
+
+  function playUrl(url) {
+    if (!url) return
+    const audio = new Audio(url)
+    audioRef.current = audio
+    audio.onended = () => { audioRef.current = null; setPlaying(false) }
+    audio.onerror = () => { audioRef.current = null; setPlaying(false) }
+    audio.play()
+      .then(() => { if (!cancelledRef.current) setPlaying(true) })
+      .catch(() => { audioRef.current = null; setPlaying(false) })
+  }
+
+  const handlePlay = useCallback(async () => {
+    if (playing) { stopAudio(); return }
+    stopAudio()
+    cancelledRef.current = false
+    setAudioLoading(true)
+    const url = await fetchTTS(index)
+    setAudioLoading(false)
+    if (cancelledRef.current) return
+    playUrl(url)
+  }, [index, playing]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-play current card on mount / index change, pre-fetch next card
+  useEffect(() => {
+    cancelledRef.current = false
+    setAudioLoading(true)
+    fetchTTS(index).then(url => {
+      setAudioLoading(false)
+      if (cancelledRef.current) return
+      playUrl(url)
+      // Pre-fetch next
+      if (index + 1 < queue.length) fetchTTS(index + 1)
+    })
+    return () => { stopAudio() }
+  }, [index]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleAction(isCorrect) {
+    if (pressedAction) return
+    setPressedAction(isCorrect ? 'correct' : 'wrong')
+    if (isCorrect) setCorrectCount(c => c + 1)
+    setTimeout(() => {
+      setPressedAction(null)
+      stopAudio()
+      if (index < queue.length - 1) {
+        setIndex(i => i + 1)
+        setRevealed(false)
+      } else {
+        setShowSuccess(true)
+      }
+    }, 600)
+  }
+
+  function handleQuitConfirm() {
+    setQuitDialogOpen(false)
+    stopAudio()
+    if (blocker.state === 'blocked') {
+      blocker.proceed()
+    } else {
+      isQuitting.current = true
+      navigate('/listen', { state: { mode: 'conjugation', verbSource, selectedTenses } })
+    }
+  }
+
+  function handleQuitCancel() {
+    setQuitDialogOpen(false)
+    if (blocker.state === 'blocked') blocker.reset()
+  }
+
+  // Keyboard: Space/Up = play, Down = reveal, Enter (after reveal) = got it
+  keyHandlersRef.current = { handlePlay, setRevealed, handleAction, revealed }
+  useEffect(() => {
+    function onKeyDown(e) {
+      const h = keyHandlersRef.current
+      if (e.key === 'ArrowUp' || e.key === ' ') { e.preventDefault(); h.handlePlay() }
+      if (e.key === 'ArrowDown') { e.preventDefault(); h.setRevealed(true) }
+      if (e.key === 'ArrowRight' && h.revealed) { e.preventDefault(); h.handleAction(true) }
+      if (e.key === 'ArrowLeft'  && h.revealed) { e.preventDefault(); h.handleAction(false) }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (showSuccess) {
+    const allCorrect = correctCount === queue.length
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100svh-0px)] p-6 text-center gap-6">
+        <div className="text-5xl tracking-widest">
+          {allCorrect ? '🌟✨🗼' : '💪✨📝'}
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground font-heading">
+            {allCorrect ? 'Parfait !' : 'Bien joué !'}
+          </h1>
+          <p className="text-sm text-primary font-medium mt-1">
+            {allCorrect ? 'Perfect conjugation score!' : 'Good effort!'}
+          </p>
+          <p className="text-sm text-muted-foreground mt-3 leading-relaxed max-w-xs">
+            You completed {queue.length} conjugation card{queue.length === 1 ? '' : 's'}. Keep going — Paris won't learn itself!
+          </p>
+        </div>
+
+        {/* Score */}
+        <div className="w-full card-frosted p-5 flex flex-col items-center gap-2">
+          <p className="font-heading font-black text-foreground" style={{ fontSize: 52, lineHeight: 1 }}>
+            {correctCount}
+            <span className="text-2xl font-normal text-muted-foreground">/{queue.length}</span>
+          </p>
+          <p className="text-sm text-muted-foreground">got it</p>
+          <div className="w-full h-2 rounded-full overflow-hidden mt-1" style={{ background: 'var(--muted)' }}>
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${(correctCount / queue.length) * 100}%`,
+                background: allCorrect
+                  ? 'linear-gradient(90deg, #4ade80, #22c55e)'
+                  : 'var(--btn-primary-gradient)',
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 w-full">
+          <button onClick={onPracticeAgain} className="btn-primary">
+            Practice Again 🔁
+          </button>
+          <button
+            onClick={() => navigate('/listen', { state: { mode: 'conjugation', verbSource, selectedTenses } })}
+            className="btn-secondary"
+          >
+            Back to Setup
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const item     = queue[index]
+  const progress = ((index + 1) / queue.length) * 100
+
+  return (
+    <div className="h-[100svh] overflow-hidden flex flex-col p-4">
+
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-2">
+        <button
+          onClick={() => setQuitDialogOpen(true)}
+          aria-label="Quit practice"
+          className="w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center shrink-0 active:scale-90 transition-transform"
+        >
+          <X className="h-4 w-4 text-muted-foreground" />
+        </button>
+        <h1 className="font-heading font-bold text-foreground" style={{ fontSize: '32px' }}>
+          Conjugation{' '}
+          <span className="text-[18px] font-normal text-muted-foreground">
+            ({index + 1}/{queue.length})
+          </span>
+        </h1>
+      </div>
+
+      {/* Progress bar */}
+      <div className="h-2 bg-muted rounded-full overflow-hidden mb-4">
+        <div
+          className="h-full rounded-full transition-all duration-300"
+          style={{
+            width: `${progress}%`,
+            background: 'var(--btn-primary-gradient)',
+            boxShadow: '0 0 8px rgba(108,71,255,0.45)',
+          }}
+        />
+      </div>
+
+      {/* Card area */}
+      <div className="flex-1 flex flex-col items-center justify-center min-h-0 gap-5">
+
+        {!revealed ? (
+          /* Front: audio prompt */
+          <div className="w-full flex flex-col items-center gap-5">
+            <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+              Listen &amp; identify
+            </p>
+            <button
+              onClick={handlePlay}
+              disabled={audioLoading}
+              aria-label="Play conjugated form"
+              className={cn(
+                'h-16 px-10 rounded-full flex items-center justify-center gap-3 text-white font-bold text-base transition-all duration-200 active:scale-[0.97]',
+                playing
+                  ? 'bg-[rgba(123,92,196,0.35)] border border-[rgba(169,136,248,0.4)]'
+                  : 'shadow-[0px_4px_18px_0px_rgba(123,92,196,0.5)]',
+                audioLoading && 'opacity-60 cursor-not-allowed'
+              )}
+              style={!playing ? { background: 'var(--btn-primary-gradient)' } : {}}
+            >
+              {playing
+                ? <><Pause className="h-5 w-5" /><span>Stop</span></>
+                : <><Volume2 className="h-5 w-5" /><span>{audioLoading ? 'Loading…' : 'Play'}</span></>
+              }
+            </button>
+            <button
+              onClick={() => setRevealed(true)}
+              className="text-sm font-semibold text-primary bg-primary/[0.13] border border-primary/[0.28] rounded-full px-5 py-2 transition-all active:scale-95"
+            >
+              Tap to reveal
+            </button>
+          </div>
+        ) : (
+          /* Revealed: infinitive + tense + conjugation */
+          <div className="w-full flex flex-col gap-4 animate-fade-up">
+
+            {/* Infinitive row */}
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-heading font-black text-foreground" style={{ fontSize: '28px', lineHeight: 1.1 }}>
+                  {item.french}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {item.english} · {item.chinese}
+                </p>
+              </div>
+              <span
+                className="shrink-0 rounded-full px-3 py-1 text-[11px] font-bold mt-1"
+                style={{
+                  background: 'rgba(99,102,241,0.15)',
+                  border: '1px solid rgba(99,102,241,0.35)',
+                  color: '#a5b4fc',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {TENSE_DISPLAY[item.tense] ?? item.tense}
+              </span>
+            </div>
+
+            {/* Hero conjugated form */}
+            <div
+              className="w-full rounded-2xl flex flex-col items-center justify-center gap-3 py-6 px-4"
+              style={{ background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.06)' }}
+            >
+              <p
+                className="font-heading font-black text-center"
+                style={{ fontSize: item.conjugated.length > 20 ? '28px' : '34px', color: '#e0e7ff', lineHeight: 1.2 }}
+              >
+                {item.conjugated}
+              </p>
+              <button
+                onClick={handlePlay}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground rounded-full px-3 py-1.5 transition-all active:scale-95"
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
+              >
+                {playing
+                  ? <><Pause className="h-3 w-3" /><span>Stop</span></>
+                  : <><Volume2 className="h-3 w-3" /><span>Replay</span></>
+                }
+              </button>
+            </div>
+
+            {/* ✗ / ✓ action buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleAction(false)}
+                disabled={!!pressedAction}
+                className={cn(
+                  'flex-1 h-14 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm text-white transition-all duration-200 active:scale-[0.97]',
+                  pressedAction === 'wrong'
+                    ? 'opacity-100 scale-[0.97]'
+                    : pressedAction === 'correct'
+                      ? 'opacity-30'
+                      : ''
+                )}
+                style={{
+                  background: pressedAction === 'wrong'
+                    ? '#dc2626'
+                    : 'rgba(220,38,38,0.20)',
+                  border: '1.5px solid rgba(220,38,38,0.40)',
+                }}
+              >
+                ✗ Didn't know
+              </button>
+              <button
+                onClick={() => handleAction(true)}
+                disabled={!!pressedAction}
+                className={cn(
+                  'flex-1 h-14 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm text-white transition-all duration-200 active:scale-[0.97]',
+                  pressedAction === 'correct'
+                    ? 'opacity-100 scale-[0.97]'
+                    : pressedAction === 'wrong'
+                      ? 'opacity-30'
+                      : ''
+                )}
+                style={{
+                  background: pressedAction === 'correct'
+                    ? '#16a34a'
+                    : 'rgba(22,163,74,0.20)',
+                  border: '1.5px solid rgba(22,163,74,0.40)',
+                }}
+              >
+                ✓ Got it
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {quitDialogOpen && (
+        <ConfirmDialog
+          title="Quit practice?"
+          message="Your progress won't be saved. You'll go back to the setup screen."
+          confirmLabel="Quit"
+          showWarning={false}
+          onConfirm={handleQuitConfirm}
+          onCancel={handleQuitCancel}
+        />
+      )}
+    </div>
+  )
+}
+```
+
+- [ ] **Step 4.2: Verify ConjugationView renders**
+
+Open Practice → Conjugation → All verbs → Start. Verify:
+1. Header shows "Conjugation (1/20)"
+2. Progress bar visible
+3. "Listen & identify" subtitle + Play button shown
+4. Clicking Play triggers audio (may take ~1s first load)
+5. "Tap to reveal" button visible
+
+- [ ] **Step 4.3: Verify reveal card**
+
+Click "Tap to reveal" or press ↓. Verify:
+1. Infinitive appears large and bold (e.g. "faire")
+2. Tense badge shown (e.g. "Passé Composé")
+3. Subtle meaning line below infinitive (e.g. "to do / to make · 做 / 製作")
+4. Dark box with conjugated form large (e.g. "tu as fait")
+5. Replay button in dark box
+6. ✗ and ✓ buttons at bottom
+
+- [ ] **Step 4.4: Verify auto-advance**
+
+Click "✓ Got it". Verify:
+1. Button highlights green briefly (~600ms)
+2. Card auto-advances to next item
+3. Audio plays automatically on new card
+
+Click "✗ Didn't know". Same timing, different highlight color.
+
+- [ ] **Step 4.5: Verify success screen**
+
+Complete all 20 cards. Verify:
+1. Success screen shows with emoji
+2. Score displayed (N/20 "got it")
+3. Score bar fills correctly
+4. "Practice Again" reshuffles and restarts session
+5. "Back to Setup" returns to ListenPage with mode: 'conjugation' restored
+
+- [ ] **Step 4.6: Commit**
+
+```bash
+git add src/pages/ConjugationView.jsx
+git commit -m "feat: add ConjugationView with audio pre-fetch, reveal card, auto-advance"
+```
+
+---
+
+## Task 5: Wire ConjugationView into PracticePage
+
+**Files:**
+- Modify: `src/pages/PracticePage.jsx`
+
+- [ ] **Step 5.1: Import ConjugationView**
+
+At the top of `src/pages/PracticePage.jsx`, after the existing imports, add:
+
+```js
+import ConjugationView from './ConjugationView'
+```
+
+- [ ] **Step 5.2: Update location.state destructuring**
+
+In `PracticePage()`, find the destructuring of `location.state` (line ~996):
+
+```js
+const {
+  queue = [],
+  selectedGroups = [],
+  selectedType = 'all',
+  selectedLevel = 'all',
+  mode = 'listening',
+} = location.state ?? {}
+```
+
+Replace with:
+
+```js
+const {
+  queue = [],
+  selectedGroups = [],
+  selectedType = 'all',
+  selectedLevel = 'all',
+  mode = 'listening',
+  verbSource = 'all',
+  selectedTenses = ['présent', 'passé composé', 'imparfait', 'futur simple', 'conditionnel'],
+} = location.state ?? {}
+```
+
+- [ ] **Step 5.3: Build sharedProps and dispatch to ConjugationView**
+
+Find the `sharedProps` block and the `return` at the bottom of `PracticePage` (lines ~1024–1037):
+
+```js
+const sharedProps = {
+  key: restartKey,
+  queue: activeQueue,
+  selectedGroups,
+  selectedType,
+  selectedLevel,
+  onPracticeAgain: handlePracticeAgain,
+  onPracticeWrongOnly: handlePracticeWrongOnly,
+}
+
+return mode === 'dictation'
+  ? <DictationView {...sharedProps} />
+  : <SessionView  {...sharedProps} />
+```
+
+Replace with:
+
+```js
+const sharedProps = {
+  key: restartKey,
+  queue: activeQueue,
+  selectedGroups,
+  selectedType,
+  selectedLevel,
+  onPracticeAgain: handlePracticeAgain,
+  onPracticeWrongOnly: handlePracticeWrongOnly,
+}
+
+if (mode === 'conjugation') {
+  return (
+    <ConjugationView
+      key={restartKey}
+      queue={activeQueue}
+      verbSource={verbSource}
+      selectedTenses={selectedTenses}
+      onPracticeAgain={handlePracticeAgain}
+    />
+  )
+}
+
+return mode === 'dictation'
+  ? <DictationView {...sharedProps} />
+  : <SessionView  {...sharedProps} />
+```
+
+- [ ] **Step 5.4: End-to-end test**
+
+Full flow test:
+1. Navigate to Practice tab
+2. Select Conjugation mode
+3. Select "All verbs" (default)
+4. Deselect "Imparfait" tense pill — count should drop slightly (still picks 1 random from remaining tenses)
+5. Re-enable all tenses
+6. Tap "Start Conjugation — 20 cards →"
+7. Audio plays automatically
+8. Tap to reveal → see infinitive, tense badge, conjugated form
+9. Tap "✓ Got it" → auto-advances to card 2
+10. Continue to completion → success screen with score
+11. "Practice Again" → new session, same verbs but new random tense+pronoun combos
+12. "Back to Setup" → ListenPage with Conjugation mode still selected
+
+Also verify Listening and Dictation modes are unaffected.
+
+- [ ] **Step 5.5: Commit**
+
+```bash
+git add src/pages/PracticePage.jsx
+git commit -m "feat: wire ConjugationView into PracticePage as third practice mode"
+```
+
+---
+
+## Self-Review Checklist
+
+After writing this plan, verifying spec coverage:
+
+| Spec requirement | Covered in |
+|---|---|
+| Conjugation mode pill on filter page | Task 3.6 |
+| Hide category/level/type filters when Conjugation selected | Task 3.7 |
+| Verb source pills (All verbs + folders) | Task 3.8 |
+| Tense pills, multi-select, at least one required | Task 3.3, 3.8 |
+| 5 tenses: Présent, Passé Composé, Imparfait, Futur Simple, Conditionnel | Task 3.1 (TENSE_OPTIONS) |
+| Static conjugations.js for built-in verbs | Task 1 |
+| /api/conjugate for custom verbs | Task 2 |
+| localStorage cache for custom verb conjugations | Task 3.4 (loadCustomConjugationsCache), 3.5 |
+| 1 random tense+pronoun per verb per session | Task 3.2 (buildConjugationQueue) |
+| Queue shuffled | Task 3.2 |
+| Audio via /api/tts, on-demand | Task 4.1 (fetchTTS) |
+| Next card audio pre-fetched in background | Task 4.1 (useEffect → fetchTTS(index + 1)) |
+| Card front: Play button, auto-plays on card enter | Task 4.1 |
+| Card revealed: infinitive + tense badge + meaning + conjugated form | Task 4.1 |
+| No phonetic line | Confirmed (not present in ConjugationView JSX) |
+| ✗/✓ buttons with pressed state → 600ms → auto-advance | Task 4.1 (handleAction) |
+| Success screen with score | Task 4.1 (inline success JSX) |
+| "Practice Again" reshuffles | Task 5.3 (handlePracticeAgain) |
+| "Back to Setup" restores conjugation mode state | Task 4.1 (navigate with state) |
+| Quit dialog | Task 4.1 (quitDialogOpen + ConfirmDialog) |
+| Keyboard shortcuts | Task 4.1 (keyHandlersRef + window listener) |
