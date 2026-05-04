@@ -323,9 +323,9 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
               <span
                 className="shrink-0 rounded-full px-3 py-1 text-[11px] font-bold mt-1"
                 style={{
-                  background: '#c4b5fd',
-                  border: '1px solid #a5b4fc',
-                  color: '#312e81',
+                  background: 'rgba(196,181,253,0.30)',
+                  border: '1px solid rgba(165,180,252,0.50)',
+                  color: 'rgba(49,46,129,0.80)',
                   whiteSpace: 'nowrap',
                 }}
               >
@@ -362,7 +362,7 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
                 onClick={() => handleAction(false)}
                 disabled={!!pressedAction}
                 className={cn(
-                  'flex-1 h-14 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm text-white transition-all duration-200 active:scale-[0.97]',
+                  'flex-1 h-14 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm transition-all duration-200 active:scale-[0.97]',
                   pressedAction === 'wrong'
                     ? 'opacity-100 scale-[0.97]'
                     : pressedAction === 'correct'
@@ -370,10 +370,9 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
                       : ''
                 )}
                 style={{
-                  background: pressedAction === 'wrong'
-                    ? '#dc2626'
-                    : 'rgba(220,38,38,0.35)',
-                  border: '1.5px solid rgba(220,38,38,0.65)',
+                  background: pressedAction === 'wrong' ? '#dc2626' : 'rgba(220,38,38,0.12)',
+                  border: '1.5px solid rgba(220,38,38,0.45)',
+                  color: pressedAction === 'wrong' ? 'white' : '#dc2626',
                 }}
               >
                 ✗ Didn't know
@@ -382,7 +381,7 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
                 onClick={() => handleAction(true)}
                 disabled={!!pressedAction}
                 className={cn(
-                  'flex-1 h-14 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm text-white transition-all duration-200 active:scale-[0.97]',
+                  'flex-1 h-14 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm transition-all duration-200 active:scale-[0.97]',
                   pressedAction === 'correct'
                     ? 'opacity-100 scale-[0.97]'
                     : pressedAction === 'wrong'
@@ -390,10 +389,9 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
                       : ''
                 )}
                 style={{
-                  background: pressedAction === 'correct'
-                    ? '#16a34a'
-                    : 'rgba(22,163,74,0.35)',
-                  border: '1.5px solid rgba(22,163,74,0.65)',
+                  background: pressedAction === 'correct' ? '#16a34a' : 'rgba(22,163,74,0.12)',
+                  border: '1.5px solid rgba(22,163,74,0.45)',
+                  color: pressedAction === 'correct' ? 'white' : '#16a34a',
                 }}
               >
                 ✓ Got it
