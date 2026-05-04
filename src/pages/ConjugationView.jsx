@@ -323,9 +323,9 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
               <span
                 className="shrink-0 rounded-full px-3 py-1 text-[11px] font-bold mt-1"
                 style={{
-                  background: '#312e81',
-                  border: '1px solid #4338ca',
-                  color: '#c4b5fd',
+                  background: '#c4b5fd',
+                  border: '1px solid #a5b4fc',
+                  color: '#312e81',
                   whiteSpace: 'nowrap',
                 }}
               >
