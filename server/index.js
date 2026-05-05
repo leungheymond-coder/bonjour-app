@@ -10,10 +10,31 @@ import express from 'express'
 import cors from 'cors'
 import rateLimit from 'express-rate-limit'
 import Anthropic from '@anthropic-ai/sdk'
-import OpenAI from 'openai'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-const openai    = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+
+// Shared Google Cloud TTS helper — returns base64-encoded MP3 string
+async function googleTts(text) {
+  if (!process.env.GOOGLE_TTS_API_KEY) throw new Error('GOOGLE_TTS_API_KEY not configured')
+  const response = await fetch(
+    `https://texttospeech.googleapis.com/v1/text:synthesize?key=${process.env.GOOGLE_TTS_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        input: { text },
+        voice: { languageCode: 'fr-FR', name: 'fr-FR-Chirp3-HD-Aoede' },
+        audioConfig: { audioEncoding: 'MP3' },
+      }),
+    }
+  )
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err?.error?.message ?? 'Google TTS request failed')
+  }
+  const data = await response.json()
+  return data.audioContent // already base64
+}
 
 const app  = express()
 const PORT = process.env.PORT || 3001
@@ -100,32 +121,10 @@ Rules:
 app.post('/api/tts', async (req, res) => {
   const { text } = req.body
   if (!text) return res.status(400).json({ error: 'Missing required field: text.' })
-  if (!process.env.GOOGLE_TTS_API_KEY) {
-    return res.status(500).json({ error: 'GOOGLE_TTS_API_KEY not configured in server/.env.' })
-  }
 
   try {
-    const response = await fetch(
-      `https://texttospeech.googleapis.com/v1/text:synthesize?key=${process.env.GOOGLE_TTS_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          input: { text },
-          voice: { languageCode: 'fr-FR', name: 'fr-FR-Chirp3-HD-Aoede' },
-          audioConfig: { audioEncoding: 'MP3' },
-        }),
-      }
-    )
-
-    if (!response.ok) {
-      const errBody = await response.json().catch(() => ({}))
-      console.error('[/api/tts]', errBody)
-      return res.status(500).json({ error: 'Failed to generate audio.' })
-    }
-
-    const data = await response.json()
-    const buffer = Buffer.from(data.audioContent, 'base64')
+    const audioContent = await googleTts(text)
+    const buffer = Buffer.from(audioContent, 'base64')
     res.set('Content-Type', 'audio/mpeg')
     res.set('Content-Length', buffer.length)
     res.send(buffer)
@@ -204,16 +203,8 @@ app.post('/api/custom-word', async (req, res) => {
   }
 
   try {
-    const mp3 = await openai.audio.speech.create({
-      model: 'gpt-4o-mini-tts',
-      voice: 'alloy',
-      input: french,
-      instructions: 'You are a native French speaker. Pronounce every word with authentic French pronunciation. Never use English phonetics.',
-      speed: 1.0,
-    })
-
-    const buffer = Buffer.from(await mp3.arrayBuffer())
-    return res.json({ success: true, audioBase64: buffer.toString('base64') })
+    const audioBase64 = await googleTts(french)
+    return res.json({ success: true, audioBase64 })
   } catch (err) {
     console.error('[/api/custom-word]', err.message)
     return res.status(500).json({ error: 'Failed to generate audio.' })
@@ -233,15 +224,8 @@ app.post('/api/regenerate-audio', aiLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Invalid id format.' })
   }
   try {
-    const mp3 = await openai.audio.speech.create({
-      model: 'gpt-4o-mini-tts',
-      voice: 'alloy',
-      input: french,
-      instructions: 'You are a native French speaker. Pronounce every word with authentic French pronunciation. Never use English phonetics.',
-      speed: 1.0,
-    })
-    const buffer = Buffer.from(await mp3.arrayBuffer())
-    return res.json({ success: true, audioBase64: buffer.toString('base64') })
+    const audioBase64 = await googleTts(french)
+    return res.json({ success: true, audioBase64 })
   } catch (err) {
     console.error('[/api/regenerate-audio]', err.message)
     return res.status(500).json({ error: 'Failed to regenerate audio.' })
