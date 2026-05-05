@@ -13,6 +13,7 @@ export default function WordEditSheet({ word, onClose }) {
   const [french,      setFrench]      = useState(word.french      ?? '')
   const [english,     setEnglish]     = useState(word.english     ?? '')
   const [chinese,     setChinese]     = useState(word.chinese     ?? '')
+  const [phonetic,    setPhonetic]    = useState(word.phonetic    ?? '')
   const [contentType, setContentType] = useState(word.contentType ?? 'vocab')
   const [categoryId,  setCategoryId]  = useState(word.category    ?? categories[0]?.id ?? '')
   const [level,       setLevel]       = useState(word.level       ?? '')
@@ -30,6 +31,7 @@ export default function WordEditSheet({ word, onClose }) {
       french:      french.trim(),
       english:     english.trim(),
       chinese:     chinese.trim(),
+      phonetic:    phonetic.trim() || undefined,
       contentType,
       category:    categoryId,
       level:       level || undefined,
@@ -173,6 +175,21 @@ export default function WordEditSheet({ word, onClose }) {
               value={chinese}
               onChange={(e) => setChinese(e.target.value)}
               maxLength={300}
+              className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+          </div>
+
+          {/* Phonetic */}
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground mb-1 block">
+              Phonetic <span className="text-muted-foreground/50 font-normal">(optional — e.g. luh PAN)</span>
+            </label>
+            <input
+              type="text"
+              value={phonetic}
+              onChange={(e) => setPhonetic(e.target.value)}
+              placeholder="Uppercase = stressed syllable"
+              maxLength={200}
               className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
           </div>
