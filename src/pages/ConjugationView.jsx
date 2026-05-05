@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBlocker } from 'react-router-dom'
-import { Volume2, Pause, X } from 'lucide-react'
+import { Volume2, Pause, X, Bookmark, BookmarkCheck } from 'lucide-react'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import FolderPopover from '@/components/FolderPopover'
+import { useCollections } from '@/hooks/useCollections'
 import { cn } from '@/lib/utils'
 
 const TENSE_DISPLAY = {
@@ -13,19 +15,24 @@ const TENSE_DISPLAY = {
   'conditionnel':  'Conditionnel',
 }
 
-export default function ConjugationView({ queue, verbSource, selectedTenses, onPracticeAgain }) {
+export default function ConjugationView({ queue, verbSource, selectedTenses, onPracticeAgain, onPracticeWrongOnly }) {
   const navigate = useNavigate()
+  const { isInAnyFolder } = useCollections()
 
-  const [index,          setIndex]          = useState(0)
-  const [revealed,       setRevealed]       = useState(false)
-  const [playing,        setPlaying]        = useState(false)
-  const [audioLoading,   setAudioLoading]   = useState(false)
-  const [pressedAction,  setPressedAction]  = useState(null) // 'correct' | 'wrong' | null
-  const [correctCount,   setCorrectCount]   = useState(0)
-  const [cardPlayCount,  setCardPlayCount]  = useState(0)
-  const [wrongCount,     setWrongCount]     = useState(0)
-  const [showSuccess,    setShowSuccess]    = useState(false)
-  const [quitDialogOpen, setQuitDialogOpen] = useState(false)
+  const [index,           setIndex]           = useState(0)
+  const [revealed,        setRevealed]        = useState(false)
+  const [playing,         setPlaying]         = useState(false)
+  const [audioLoading,    setAudioLoading]    = useState(false)
+  const [pressedAction,   setPressedAction]   = useState(null) // 'correct' | 'wrong' | null
+  const [correctCount,    setCorrectCount]    = useState(0)
+  const [cardPlayCount,   setCardPlayCount]   = useState(0)
+  const [wrongCount,      setWrongCount]      = useState(0)
+  const [wrongItems,      setWrongItems]      = useState([])
+  const [showSuccess,     setShowSuccess]     = useState(false)
+  const [quitDialogOpen,  setQuitDialogOpen]  = useState(false)
+  const [savePopoverOpen, setSavePopoverOpen] = useState(false)
+
+  const saveBtnRef = useRef(null)
 
   const audioCache     = useRef({})  // { [index]: blobUrl }
   const audioRef       = useRef(null)
@@ -132,10 +139,11 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
     if (pressedAction) return
     setPressedAction(isCorrect ? 'correct' : 'wrong')
     if (isCorrect) setCorrectCount(c => c + 1)
-    else setWrongCount(c => c + 1)
+    else { setWrongCount(c => c + 1); setWrongItems(prev => [...prev, queue[index]]) }
     actionTimerRef.current = setTimeout(() => {
       setPressedAction(null)
       stopAudio()
+      setSavePopoverOpen(false)
       if (index < queue.length - 1) {
         setIndex(i => i + 1)
         setRevealed(false)
@@ -215,9 +223,20 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
         </div>
 
         <div className="flex flex-col gap-3 w-full">
-          <button onClick={onPracticeAgain} className="btn-primary">
-            Practice Again 🔁
-          </button>
+          {wrongItems.length > 0 && onPracticeWrongOnly ? (
+            <>
+              <button onClick={() => onPracticeWrongOnly(wrongItems)} className="btn-primary">
+                Practice {wrongItems.length} wrong item{wrongItems.length === 1 ? '' : 's'} again ❌
+              </button>
+              <button onClick={onPracticeAgain} className="btn-secondary">
+                Practice Again 🔁
+              </button>
+            </>
+          ) : (
+            <button onClick={onPracticeAgain} className="btn-primary">
+              Practice Again 🔁
+            </button>
+          )}
           <button
             onClick={() => navigate('/listen', { state: { mode: 'conjugation', verbSource, selectedTenses } })}
             className="btn-secondary"
@@ -303,7 +322,7 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
             >
               {playing
                 ? <><Pause className="h-5 w-5" /><span>Stop</span></>
-                : <><Volume2 className="h-5 w-5" /><span>{audioLoading ? 'Loading…' : cardPlayCount > 0 ? 'Replay slowly' : 'Play'}</span></>
+                : <><Volume2 className="h-5 w-5" /><span>{audioLoading ? 'Loading…' : cardPlayCount > 0 ? 'Replay' : 'Play'}</span></>
               }
             </button>
             <button
@@ -314,53 +333,76 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
             </button>
           </div>
         ) : (
-          /* Revealed: infinitive + tense + conjugation */
+          /* Revealed */
           <div className="w-full flex flex-col gap-4">
 
-            {/* Infinitive row */}
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-heading font-black text-foreground" style={{ fontSize: '28px', lineHeight: 1.1 }}>
-                  {item.french}
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {item.english} · {item.chinese}
-                </p>
-              </div>
-              <span
-                className="shrink-0 rounded-full px-3 py-1 text-[11px] font-bold mt-1"
-                style={{
-                  background: 'rgba(196,181,253,0.30)',
-                  border: '1px solid rgba(165,180,252,0.50)',
-                  color: 'rgba(49,46,129,0.80)',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {TENSE_DISPLAY[item.tense] ?? item.tense}
-              </span>
-            </div>
-
-            {/* Hero conjugated form */}
-            <div
-              className="w-full rounded-2xl flex flex-col items-center justify-center gap-3 py-6 px-4"
-              style={{ background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.06)' }}
+            {/* Tense chip */}
+            <span
+              className="self-start rounded-full px-3 py-1 text-[14px] font-bold whitespace-nowrap bg-zinc-200 text-zinc-500 dark:bg-zinc-600 dark:text-zinc-300"
             >
+              {TENSE_DISPLAY[item.tense] ?? item.tense}
+            </span>
+
+            {/* Conjugated form + play button */}
+            <div className="flex items-center gap-3">
               <p
-                className="font-heading font-black text-center"
-                style={{ fontSize: item.conjugated.length > 20 ? '28px' : '34px', color: '#e0e7ff', lineHeight: 1.2 }}
+                className="font-heading font-black text-foreground flex-1"
+                style={{
+                  fontSize: item.conjugated.length > 25 ? '30px' : item.conjugated.length > 18 ? '36px' : '42px',
+                  lineHeight: 1.1,
+                }}
               >
                 {item.conjugated}
               </p>
               <button
                 onClick={handlePlay}
-                className="flex items-center gap-1.5 text-xs text-slate-300 rounded-full px-3 py-1.5 transition-all active:scale-95"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
+                aria-label={playing ? 'Stop' : 'Replay'}
+                className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 hover:opacity-80"
+                style={{ background: 'rgba(152,120,224,0.15)', border: '1px solid rgba(152,120,224,0.30)' }}
               >
                 {playing
-                  ? <><Pause className="h-3 w-3" /><span>Stop</span></>
-                  : <><Volume2 className="h-3 w-3" /><span>Replay slowly</span></>
+                  ? <Pause className="h-4 w-4 text-primary" />
+                  : <Volume2 className="h-4 w-4 text-primary" />
                 }
               </button>
+            </div>
+
+            {/* White info card: infinitive + meaning + save */}
+            <div
+              className="w-full rounded-2xl px-4 py-3 flex items-center justify-between gap-3"
+              style={{ background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.22)' }}
+            >
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <p className="font-heading font-bold text-foreground" style={{ fontSize: '20px' }}>
+                  {item.french}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {item.english} · {item.chinese}
+                </p>
+              </div>
+              <div className="shrink-0">
+                <button
+                  ref={saveBtnRef}
+                  onClick={() => setSavePopoverOpen(v => !v)}
+                  aria-label="Save to folder"
+                  className={cn(
+                    'w-9 h-9 rounded-full flex items-center justify-center transition-colors active:scale-90',
+                    isInAnyFolder(item.wordId) ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-muted'
+                  )}
+                >
+                  {isInAnyFolder(item.wordId)
+                    ? <BookmarkCheck className="h-4 w-4 fill-primary" />
+                    : <Bookmark className="h-4 w-4" />
+                  }
+                </button>
+                {savePopoverOpen && (
+                  <FolderPopover
+                    wordId={item.wordId}
+                    anchorEl={saveBtnRef.current}
+                    onClose={() => setSavePopoverOpen(false)}
+                  />
+                )}
+              </div>
             </div>
 
             {/* ✗ / ✓ action buttons */}
@@ -380,6 +422,7 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
                   background: pressedAction === 'wrong' ? '#dc2626' : 'rgba(220,38,38,0.12)',
                   border: '1.5px solid rgba(220,38,38,0.45)',
                   color: pressedAction === 'wrong' ? 'white' : '#dc2626',
+                  boxShadow: '0 4px 18px rgba(220,38,38,0.30)',
                 }}
               >
                 ✗ Didn't know
@@ -399,6 +442,7 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
                   background: pressedAction === 'correct' ? '#16a34a' : 'rgba(22,163,74,0.12)',
                   border: '1.5px solid rgba(22,163,74,0.45)',
                   color: pressedAction === 'correct' ? 'white' : '#16a34a',
+                  boxShadow: '0 4px 18px rgba(22,163,74,0.30)',
                 }}
               >
                 ✓ Got it

@@ -1054,6 +1054,7 @@ export default function PracticePage() {
         verbSource={verbSource}
         selectedTenses={selectedTenses}
         onPracticeAgain={handlePracticeAgain}
+        onPracticeWrongOnly={handlePracticeWrongOnly}
       />
     )
   }

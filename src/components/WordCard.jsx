@@ -166,7 +166,7 @@ export default function WordCard({ word }) {
             {(() => {
               const cat = categories.find((c) => c.id === word.category)
               return cat ? (
-                <span className="inline-block text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">
+                <span className="inline-block text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded bg-zinc-200 text-zinc-500 dark:bg-zinc-600 dark:text-zinc-300">
                   {cat.emoji} {cat.label}
                 </span>
               ) : null
