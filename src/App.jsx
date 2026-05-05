@@ -153,10 +153,11 @@ function TimerCard({ seconds, timerState, onStart, onPause, onResume, onReset })
         padding: '8px 10px 6px',
         minWidth: 64,
         borderRadius: 14,
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        background: isRunning ? 'rgba(14,12,28,0.72)' : 'rgba(14,12,28,0.60)',
-        border: `1px solid ${isRunning ? 'rgba(152,120,224,0.28)' : 'rgba(255,255,255,0.09)'}`,
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        background: isRunning ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.11)',
+        border: `1px solid ${isRunning ? 'rgba(152,120,224,0.55)' : 'rgba(255,255,255,0.22)'}`,
+        boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
       }}
     >
       <span style={{
@@ -164,7 +165,7 @@ function TimerCard({ seconds, timerState, onStart, onPause, onResume, onReset })
         fontWeight: 700,
         letterSpacing: '0.12em',
         textTransform: 'uppercase',
-        color: isRunning ? 'var(--muted-foreground)' : 'rgba(86,80,96,1)',
+        color: 'var(--muted-foreground)',
       }}>
         Session
       </span>
@@ -277,7 +278,7 @@ function Layout() {
       <BottomNav />
       {showPill && (
         isWide
-          ? <TimerPill
+          ? <TimerCard
               seconds={timerSeconds}
               timerState={timerState}
               onStart={handleStart}
@@ -285,7 +286,7 @@ function Layout() {
               onResume={handleResume}
               onReset={handleReset}
             />
-          : <TimerCard
+          : <TimerPill
               seconds={timerSeconds}
               timerState={timerState}
               onStart={handleStart}
