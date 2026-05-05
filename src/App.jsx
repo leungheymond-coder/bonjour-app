@@ -25,6 +25,7 @@ function useMediaQuery(query) {
   return matches
 }
 
+
 // ─── Timer pill ────────────────────────────────────────────────────────────────
 // Rendered into document.body via portal so it's never clipped by overflow:hidden
 
@@ -62,8 +63,9 @@ function TimerPill({ seconds, timerState, onStart, onPause, onResume, onReset })
         className="flex items-center gap-1.5 rounded-full backdrop-blur-md transition-all duration-200 active:scale-95"
         style={{
           padding: '5px 8px 5px 10px',
-          background: isRunning ? 'rgba(152,120,224,0.18)' : 'rgba(255,255,255,0.06)',
-          border: `1px solid ${isRunning ? 'rgba(152,120,224,0.35)' : 'rgba(255,255,255,0.10)'}`,
+          background: isRunning ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.11)',
+          border: `1px solid ${isRunning ? 'rgba(152,120,224,0.55)' : 'rgba(255,255,255,0.22)'}`,
+          boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
         }}
       >
         <span
@@ -95,9 +97,9 @@ function TimerPill({ seconds, timerState, onStart, onPause, onResume, onReset })
           style={{
             top: 'calc(100% + 6px)',
             width: 140,
-            background: 'oklch(0.13 0.015 280)',
-            border: '1px solid rgba(152,120,224,0.28)',
-            boxShadow: '0 12px 32px rgba(0,0,0,0.5)',
+            background: 'white',
+            border: '1px solid rgba(0,0,0,0.08)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
           }}
         >
           <button
@@ -106,7 +108,7 @@ function TimerPill({ seconds, timerState, onStart, onPause, onResume, onReset })
             style={{
               padding: '10px 14px', fontSize: 13, fontWeight: 600,
               color: 'var(--primary)', background: 'none', border: 'none',
-              borderBottom: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer',
+              borderBottom: '1px solid rgba(0,0,0,0.06)', cursor: 'pointer',
             }}
           >
             <Play size={11} fill="var(--primary)" strokeWidth={0} />
@@ -117,11 +119,11 @@ function TimerPill({ seconds, timerState, onStart, onPause, onResume, onReset })
             className="w-full flex items-center gap-2 text-left"
             style={{
               padding: '10px 14px', fontSize: 13, fontWeight: 600,
-              color: 'var(--muted-foreground)', background: 'none', border: 'none',
+              color: '#4b5563', background: 'none', border: 'none',
               cursor: 'pointer',
             }}
           >
-            <RotateCcw size={11} color="var(--muted-foreground)" />
+            <RotateCcw size={11} color="#4b5563" />
             Reset
           </button>
         </div>
@@ -147,12 +149,12 @@ function TimerCard({ seconds, timerState, onStart, onPause, onResume, onReset })
 
   return createPortal(
     <div
-      className="fixed top-4 right-4 flex flex-col items-center gap-1"
+      className="fixed top-4 right-4 flex flex-col items-center gap-2"
       style={{
         zIndex: 9999,
-        padding: '8px 10px 6px',
-        minWidth: 64,
-        borderRadius: 14,
+        padding: '12px 16px 10px',
+        minWidth: 88,
+        borderRadius: 18,
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         background: isRunning ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.11)',
@@ -161,18 +163,18 @@ function TimerCard({ seconds, timerState, onStart, onPause, onResume, onReset })
       }}
     >
       <span style={{
-        fontSize: 9,
+        fontSize: 10,
         fontWeight: 700,
         letterSpacing: '0.12em',
         textTransform: 'uppercase',
         color: 'var(--muted-foreground)',
       }}>
-        Session
+        Timer
       </span>
       <span
         className="font-mono font-bold tabular-nums"
         style={{
-          fontSize: 18,
+          fontSize: 26,
           letterSpacing: 1,
           lineHeight: 1,
           color: isRunning ? 'var(--foreground)' : 'var(--muted-foreground)',
@@ -180,25 +182,25 @@ function TimerCard({ seconds, timerState, onStart, onPause, onResume, onReset })
       >
         {formatTime(seconds)}
       </span>
-      <div style={{ width: '100%', height: 1, background: 'rgba(204,184,255,0.12)', margin: '2px 0' }} />
-      <div className="flex gap-1.5">
+      <div style={{ width: '100%', height: 1, background: 'rgba(204,184,255,0.15)', margin: '2px 0' }} />
+      <div className="flex gap-2">
         <button
           onClick={handlePlayPause}
-          className="flex items-center justify-center rounded-full transition-opacity active:scale-95"
-          style={{ width: 22, height: 22, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.10)' }}
+          className="flex items-center justify-center rounded-full transition-all active:scale-95 hover:opacity-80"
+          style={{ width: 36, height: 36, background: 'rgba(152,120,224,0.15)', border: '1px solid rgba(152,120,224,0.30)' }}
         >
           {isRunning
-            ? <Pause size={9} fill="var(--foreground)" strokeWidth={0} />
-            : <Play  size={9} fill={isPaused ? 'var(--primary)' : 'var(--muted-foreground)'} strokeWidth={0} />
+            ? <Pause size={14} fill="var(--primary)" strokeWidth={0} />
+            : <Play  size={14} fill="var(--primary)" strokeWidth={0} />
           }
         </button>
         {!isIdle && (
           <button
             onClick={onReset}
-            className="flex items-center justify-center rounded-full transition-opacity active:scale-95"
-            style={{ width: 22, height: 22, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.10)' }}
+            className="flex items-center justify-center rounded-full transition-all active:scale-95 hover:opacity-80"
+            style={{ width: 36, height: 36, background: 'rgba(152,120,224,0.15)', border: '1px solid rgba(152,120,224,0.30)' }}
           >
-            <RotateCcw size={9} color="var(--muted-foreground)" />
+            <RotateCcw size={14} color="var(--primary)" />
           </button>
         )}
       </div>
@@ -222,6 +224,61 @@ function Layout() {
   const timerStateRef  = useRef('idle')   // shadow for useEffect closures
   const prevPathRef    = useRef(location.pathname)
 
+  // Idle tracking
+  const [showIdlePrompt, setShowIdlePrompt] = useState(false)
+  const [alarmPlaying,   setAlarmPlaying]   = useState(false)
+  const showIdlePromptRef = useRef(false)
+  const idleTimerRef      = useRef(null)
+  const alarmTimerRef     = useRef(null)
+  const alarmAudioRef     = useRef(null)
+
+  function stopAlarmAudio() {
+    if (alarmAudioRef.current) {
+      alarmAudioRef.current.pause()
+      alarmAudioRef.current.currentTime = 0
+      alarmAudioRef.current = null
+    }
+  }
+
+  function stopAlarm() {
+    stopAlarmAudio()
+    setAlarmPlaying(false)
+  }
+
+  function startAlarm() {
+    stopAlarmAudio()
+    const audio = new Audio('/alarm.mp3')
+    audio.loop = false
+    alarmAudioRef.current = audio
+    audio.play().catch(() => {})
+    setAlarmPlaying(true)
+    // Auto-stop audio after 5 min but keep "Wake up!" modal visible
+    setTimeout(() => stopAlarmAudio(), 5 * 60 * 1000)
+  }
+
+  function _setIdlePrompt(v) {
+    showIdlePromptRef.current = v
+    setShowIdlePrompt(v)
+    if (v) { stopInterval(); setTS('paused') }
+  }
+
+  function scheduleIdleCheck() {
+    clearTimeout(idleTimerRef.current)
+    clearTimeout(alarmTimerRef.current)
+    idleTimerRef.current = setTimeout(() => {
+      _setIdlePrompt(true)
+      alarmTimerRef.current = setTimeout(startAlarm, 5 * 60 * 1000)
+    }, 10 * 60 * 1000)
+  }
+
+  function clearIdleTimers() {
+    clearTimeout(idleTimerRef.current)
+    clearTimeout(alarmTimerRef.current)
+    stopAlarm()
+    showIdlePromptRef.current = false
+    setShowIdlePrompt(false)
+  }
+
   function setTS(s) { timerStateRef.current = s; setTimerState(s) }
 
   function startInterval() {
@@ -233,12 +290,41 @@ function Layout() {
     intervalRef.current = null
   }
 
-  const handleStart  = () => { startInterval(); setTS('running') }
-  const handlePause  = () => { stopInterval();  setTS('paused')  }
-  const handleResume = () => { startInterval(); setTS('running') }
-  const handleReset  = () => { stopInterval();  setTimerSeconds(0); setTS('idle') }
+  const handleStart  = () => { startInterval(); setTS('running'); scheduleIdleCheck() }
+  const handlePause  = () => { stopInterval();  setTS('paused');  clearIdleTimers()   }
+  const handleResume = () => { startInterval(); setTS('running'); scheduleIdleCheck() }
+  const handleReset  = () => { stopInterval();  setTimerSeconds(0); setTS('idle'); clearIdleTimers() }
 
-  useEffect(() => () => stopInterval(), [])
+  const handleDismissIdle = () => {
+    stopAlarm()
+    showIdlePromptRef.current = false
+    setShowIdlePrompt(false)
+    startInterval()
+    setTS('running')
+    scheduleIdleCheck()
+  }
+
+  // Global activity listener — resets idle timer, or dismisses idle prompt on any interaction
+  useEffect(() => {
+    function onActivity() {
+      if (showIdlePromptRef.current) {
+        stopAlarm()
+        showIdlePromptRef.current = false
+        setShowIdlePrompt(false)
+        startInterval()
+        setTS('running')
+        scheduleIdleCheck()
+        return
+      }
+      if (timerStateRef.current !== 'running') return
+      scheduleIdleCheck()
+    }
+    const events = ['mousedown', 'keydown', 'touchstart', 'scroll']
+    events.forEach(e => window.addEventListener(e, onActivity, { passive: true }))
+    return () => events.forEach(e => window.removeEventListener(e, onActivity))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => () => { stopInterval(); clearTimeout(idleTimerRef.current); clearTimeout(alarmTimerRef.current); stopAlarm() }, [])
 
   // Route-aware auto-behaviour
   useEffect(() => {
@@ -254,14 +340,14 @@ function Layout() {
 
     if (!onPracticeTab && wasOnPracticeTab) {
       // Left the practice tab entirely — reset
-      stopInterval(); setTimerSeconds(0); setTS('idle')
+      stopInterval(); setTimerSeconds(0); setTS('idle'); clearIdleTimers()
     } else if (onPractice && !wasOnPractice) {
       // Entered /practice — auto-start if idle, auto-resume if paused
       const s = timerStateRef.current
-      if (s === 'idle' || s === 'paused') { startInterval(); setTS('running') }
+      if (s === 'idle' || s === 'paused') { startInterval(); setTS('running'); scheduleIdleCheck() }
     } else if (onListen && wasOnPractice) {
       // Navigated back to filter screen — auto-pause
-      if (timerStateRef.current === 'running') { stopInterval(); setTS('paused') }
+      if (timerStateRef.current === 'running') { stopInterval(); setTS('paused'); clearIdleTimers() }
     }
   }, [location.pathname])
 
@@ -294,6 +380,48 @@ function Layout() {
               onResume={handleResume}
               onReset={handleReset}
             />
+      )}
+
+      {/* Idle / alarm modal — centred overlay */}
+      {showIdlePrompt && createPortal(
+        <div
+          className="fixed inset-0 flex items-center justify-center"
+          style={{ zIndex: 10000, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+          onClick={handleDismissIdle}
+        >
+          <div
+            className="flex flex-col items-center gap-5 animate-fade-up"
+            style={{
+              background: 'white',
+              borderRadius: 24,
+              padding: '36px 32px',
+              maxWidth: 300,
+              width: '90%',
+              boxShadow: '0 8px 40px rgba(0,0,0,0.35)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <span style={{ fontSize: 56 }}>{alarmPlaying ? '⏰' : '💤'}</span>
+            <div className="text-center flex flex-col gap-2">
+              <p className="font-heading font-bold" style={{ fontSize: 22, color: '#1a1535' }}>
+                {alarmPlaying ? 'Wake up!' : 'Are you here?'}
+              </p>
+              <p style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>
+                {alarmPlaying
+                  ? "Come on — every minute counts! You've got this 🚀"
+                  : "Take a breath and jump back in — you're doing great 💪"}
+              </p>
+            </div>
+            <button
+              onClick={handleDismissIdle}
+              className="btn-primary"
+              style={{ minWidth: 140 }}
+            >
+              {alarmPlaying ? "I'm awake! 🎯" : "I'm here!"}
+            </button>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   )
