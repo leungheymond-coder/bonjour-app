@@ -4,6 +4,7 @@ import { useBlocker } from 'react-router-dom'
 import { Volume2, Pause, X, Bookmark, BookmarkCheck } from 'lucide-react'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import FolderPopover from '@/components/FolderPopover'
+import ProgressModal from '@/components/ProgressModal'
 import { useCollections } from '@/hooks/useCollections'
 import { cn } from '@/lib/utils'
 
@@ -28,6 +29,7 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
   const [cardPlayCount,   setCardPlayCount]   = useState(0)
   const [wrongCount,      setWrongCount]      = useState(0)
   const [wrongItems,      setWrongItems]      = useState([])
+  const [showProgress,    setShowProgress]    = useState(false)
   const [showSuccess,     setShowSuccess]     = useState(false)
   const [quitDialogOpen,  setQuitDialogOpen]  = useState(false)
   const [savePopoverOpen, setSavePopoverOpen] = useState(false)
@@ -289,6 +291,13 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
           <>
             <span className="text-xs font-bold" style={{ color: '#4ade80' }}>✓ {correctCount}</span>
             <span className="text-xs font-bold" style={{ color: '#f87171' }}>✗ {wrongCount}</span>
+            <button
+              onClick={() => setShowProgress(true)}
+              className="ml-auto text-xs font-semibold"
+              style={{ color: 'rgba(108,71,255,0.85)', textDecoration: 'underline', textUnderlineOffset: '2px' }}
+            >
+              Details
+            </button>
           </>
         ) : (
           <>
@@ -451,6 +460,22 @@ export default function ConjugationView({ queue, verbSource, selectedTenses, onP
           </div>
         )}
       </div>
+
+      {showProgress && (
+        <ProgressModal
+          correctCount={correctCount}
+          wrongItems={wrongItems.map(item => ({
+            ...item,
+            french: item.conjugated,
+            english: `${TENSE_DISPLAY[item.tense] ?? item.tense} · ${item.french}`,
+          }))}
+          totalCount={queue.length}
+          doneCount={correctCount + wrongCount}
+          onClose={() => setShowProgress(false)}
+          onPracticeWrong={() => { setShowProgress(false); onPracticeWrongOnly(wrongItems) }}
+          onStartOver={() => { setShowProgress(false); onPracticeAgain() }}
+        />
+      )}
 
       {quitDialogOpen && (
         <ConfirmDialog
