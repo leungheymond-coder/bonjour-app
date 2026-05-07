@@ -20,24 +20,18 @@ export default function ProgressModal({
     <div className="fixed inset-0 z-[80] flex items-end justify-center">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
-      <div
-        className="relative w-full max-w-sm rounded-t-3xl flex flex-col animate-fade-up"
-        style={{
-          background: 'rgba(15,14,23,0.97)',
-          border: '1px solid rgba(255,255,255,0.10)',
-          maxHeight: '80svh',
-        }}
+      <div className="relative w-full max-w-sm rounded-t-3xl flex flex-col animate-fade-up bg-white dark:bg-[rgba(15,14,23,0.97)] border border-border dark:border-white/10"
+        style={{ maxHeight: '80svh' }}
       >
         {/* Handle + header */}
         <div className="pt-4 px-5 shrink-0">
-          <div className="w-9 h-1 rounded-full bg-white/20 mx-auto mb-4" />
+          <div className="w-9 h-1 rounded-full bg-black/10 dark:bg-white/20 mx-auto mb-4" />
 
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-base text-foreground">Session Progress</h2>
             <button
               onClick={onClose}
-              className="w-7 h-7 rounded-full flex items-center justify-center"
-              style={{ background: 'rgba(255,255,255,0.08)' }}
+              className="w-7 h-7 rounded-full flex items-center justify-center bg-black/5 dark:bg-white/[0.08]"
             >
               <X className="h-3.5 w-3.5 text-muted-foreground" />
             </button>
@@ -45,18 +39,15 @@ export default function ProgressModal({
 
           {/* Stats grid */}
           <div className="grid grid-cols-3 gap-2 mb-4">
-            <div className="rounded-2xl p-3 text-center"
-              style={{ background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.20)' }}>
-              <p className="font-black text-2xl" style={{ color: '#4ade80' }}>{correctCount}</p>
+            <div className="rounded-2xl p-3 text-center bg-green-500/10 dark:bg-green-400/8 border border-green-500/20 dark:border-green-400/20">
+              <p className="font-black text-2xl text-green-600 dark:text-green-400">{correctCount}</p>
               <p className="text-xs mt-0.5 text-muted-foreground">correct</p>
             </div>
-            <div className="rounded-2xl p-3 text-center"
-              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.20)' }}>
-              <p className="font-black text-2xl" style={{ color: '#f87171' }}>{wrongItems.length}</p>
+            <div className="rounded-2xl p-3 text-center bg-red-500/10 dark:bg-red-400/8 border border-red-500/20 dark:border-red-400/20">
+              <p className="font-black text-2xl text-red-600 dark:text-red-400">{wrongItems.length}</p>
               <p className="text-xs mt-0.5 text-muted-foreground">wrong</p>
             </div>
-            <div className="rounded-2xl p-3 text-center"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)' }}>
+            <div className="rounded-2xl p-3 text-center bg-black/[0.03] dark:bg-white/5 border border-black/8 dark:border-white/10">
               <p className="font-black text-2xl text-foreground">{remainingCount}</p>
               <p className="text-xs mt-0.5 text-muted-foreground">left</p>
             </div>
@@ -66,13 +57,11 @@ export default function ProgressModal({
           {wrongItems.length > 0 && (
             <button
               onClick={() => setWrongOpen(v => !v)}
-              className="w-full flex items-center justify-between py-2.5 border-t"
-              style={{ borderColor: 'rgba(255,255,255,0.07)' }}
+              className="w-full flex items-center justify-between py-2.5 border-t border-border"
             >
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-foreground">Wrong items</span>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                  style={{ background: 'rgba(248,113,113,0.15)', color: '#f87171' }}>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-red-500/12 dark:bg-red-400/15 text-red-600 dark:text-red-400">
                   {wrongItems.length}
                 </span>
               </div>
@@ -90,8 +79,7 @@ export default function ProgressModal({
             {wrongItems.map((word, i) => (
               <div
                 key={word.id}
-                className="py-3"
-                style={{ borderBottom: i < wrongItems.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}
+                className={cn('py-3', i < wrongItems.length - 1 && 'border-b border-border')}
               >
                 <p className="font-bold text-sm text-foreground">{word.french}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{word.english}</p>
@@ -101,8 +89,7 @@ export default function ProgressModal({
         )}
 
         {/* Actions */}
-        <div className="px-5 pb-7 pt-3 shrink-0 flex flex-col gap-2 border-t"
-          style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+        <div className="px-5 pb-7 pt-3 shrink-0 flex flex-col gap-2 border-t border-border">
           {wrongItems.length > 0 && (
             <button
               onClick={() => onPracticeWrong(wrongItems)}
@@ -114,15 +101,13 @@ export default function ProgressModal({
           )}
           <button
             onClick={onStartOver}
-            className="w-full h-11 rounded-full text-sm font-semibold flex items-center justify-center gap-2"
-            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.10)', color: 'rgba(255,255,255,0.65)' }}
+            className="w-full h-11 rounded-full text-sm font-semibold flex items-center justify-center gap-2 bg-black/[0.04] dark:bg-white/[0.07] border border-border dark:border-white/10 text-foreground/60 dark:text-white/65"
           >
             Start over 🔁
           </button>
           <button
             onClick={onClose}
-            className="w-full h-9 text-xs font-medium"
-            style={{ color: 'rgba(255,255,255,0.35)' }}
+            className="w-full h-9 text-xs font-medium text-foreground/40 dark:text-white/35"
           >
             Resume session →
           </button>
