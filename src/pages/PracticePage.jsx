@@ -8,6 +8,7 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 import { cn } from '@/lib/utils'
 import { categories } from '@/data/vocabulary'
 import ConjugationView from './ConjugationView'
+import ProgressModal from '@/components/ProgressModal'
 
 const SPEEDS = [
   { value: 0.75, label: '0.75×' },
@@ -550,6 +551,7 @@ function DictationView({ queue, selectedGroups, selectedType, selectedLevel, onP
   const [correctCount, setCorrectCount] = useState(0)
   const [wrongWords,   setWrongWords]   = useState([])
   const [showSuccess,  setShowSuccess]  = useState(false)
+  const [showProgress, setShowProgress] = useState(false)
   const [quitDialogOpen,  setQuitDialogOpen]  = useState(false)
   const [savePopoverOpen, setSavePopoverOpen] = useState(false)
   const [playing,      setPlaying]      = useState(false)
@@ -793,6 +795,13 @@ function DictationView({ queue, selectedGroups, selectedType, selectedLevel, onP
           <>
             <span className="text-xs font-bold" style={{ color: '#4ade80' }}>✓ {correctCount}</span>
             <span className="text-xs font-bold" style={{ color: '#f87171' }}>✗ {wrongWords.length}</span>
+            <button
+              onClick={() => setShowProgress(true)}
+              className="ml-auto text-xs font-semibold"
+              style={{ color: 'rgba(108,71,255,0.85)', textDecoration: 'underline', textUnderlineOffset: '2px' }}
+            >
+              Details
+            </button>
           </>
         ) : (
           <>
@@ -979,6 +988,18 @@ function DictationView({ queue, selectedGroups, selectedType, selectedLevel, onP
           </button>
         )}
       </div>
+
+      {showProgress && (
+        <ProgressModal
+          correctCount={correctCount}
+          wrongItems={wrongWords}
+          totalCount={queue.length}
+          doneCount={correctCount + wrongWords.length}
+          onClose={() => setShowProgress(false)}
+          onPracticeWrong={(items) => { setShowProgress(false); onPracticeWrongOnly(items) }}
+          onStartOver={() => { setShowProgress(false); onPracticeAgain() }}
+        />
+      )}
 
       {quitDialogOpen && (
         <ConfirmDialog
