@@ -169,6 +169,18 @@ export default function ListenPage() {
     return loadCustomConjugationsCache(verbs)
   })()
 
+  // Total verbs available for conjugation (including custom ones not yet cached).
+  // buildConjugationQueue skips uncached custom verbs in the preview, so we count
+  // the verb list directly to get the real expected card count.
+  const conjugationVerbCount = (() => {
+    if (mode !== 'conjugation') return 0
+    if (verbSource === 'all') {
+      return [...vocabulary, ...customWords].filter(w => w.category === 'verbs').length
+    }
+    const folderIds = collections[verbSource]?.ids ?? []
+    return [...vocabulary, ...customWords].filter(w => folderIds.includes(w.id)).length
+  })()
+
   const queue = mode === 'conjugation'
     ? buildConjugationQueue(verbSource, selectedTenses, collections, customWords, conjugations, customConjugationsCache)
     : buildQueue([...selectedGroups], selectedType, selectedLevel, collections, customWords, customizations)
@@ -182,7 +194,7 @@ export default function ListenPage() {
       return
     }
 
-    if (queue.length === 0) return
+    if (conjugationVerbCount === 0) return
 
     // Pre-fetch conjugations for any custom verbs without cached data
     let verbs = []
@@ -428,18 +440,18 @@ export default function ListenPage() {
       <div className="sticky bottom-16 z-20 px-4 pb-3 pt-2 bg-background/90 backdrop-blur-xl border-t border-border/40">
         <button
           onClick={handleStart}
-          disabled={queue.length === 0 || isLoadingConjugations}
+          disabled={(mode === 'conjugation' ? conjugationVerbCount : queue.length) === 0 || isLoadingConjugations}
           className={cn(
             'btn-primary w-full transition-all duration-200',
-            (queue.length === 0 || isLoadingConjugations) && 'opacity-40 cursor-not-allowed'
+            ((mode === 'conjugation' ? conjugationVerbCount : queue.length) === 0 || isLoadingConjugations) && 'opacity-40 cursor-not-allowed'
           )}
         >
           {isLoadingConjugations
             ? 'Generating conjugations…'
-            : queue.length === 0
+            : (mode === 'conjugation' ? conjugationVerbCount : queue.length) === 0
               ? 'Select at least one group to start'
               : mode === 'conjugation'
-                ? `Start Conjugation — ${queue.length} card${queue.length === 1 ? '' : 's'} →`
+                ? `Start Conjugation — ${conjugationVerbCount} card${conjugationVerbCount === 1 ? '' : 's'} →`
                 : `Start ${mode === 'listening' ? 'Listening' : 'Dictation'} — ${queue.length} word${queue.length === 1 ? '' : 's'} →`
           }
         </button>
