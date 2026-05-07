@@ -17,15 +17,22 @@ export default function ProgressModal({
   const remainingCount = totalCount - doneCount
 
   return createPortal(
-    <div className="fixed inset-0 z-[80] flex items-end justify-center">
+    <div className="fixed inset-0 z-[80] flex items-end lg:items-center justify-center">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative w-full max-w-sm rounded-t-3xl flex flex-col animate-fade-up bg-white dark:bg-[rgba(15,14,23,0.97)] border border-border dark:border-white/10"
+      <div className={cn(
+        'relative w-full max-w-sm flex flex-col',
+        'bg-white dark:bg-[rgba(15,14,23,0.97)] border border-border dark:border-white/10',
+        // Mobile: bottom sheet
+        'rounded-t-3xl animate-fade-up',
+        // Desktop: centered modal
+        'lg:rounded-3xl lg:animate-fade-in lg:my-auto',
+      )}
         style={{ maxHeight: '80svh' }}
       >
-        {/* Handle + header */}
-        <div className="pt-4 px-5 shrink-0">
-          <div className="w-9 h-1 rounded-full bg-black/10 dark:bg-white/20 mx-auto mb-4" />
+        {/* Handle (mobile only) */}
+        <div className="pt-4 px-5 shrink-0 lg:pt-5">
+          <div className="w-9 h-1 rounded-full bg-black/10 dark:bg-white/20 mx-auto mb-4 lg:hidden" />
 
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-base text-foreground">Session Progress</h2>
@@ -89,7 +96,7 @@ export default function ProgressModal({
         )}
 
         {/* Actions */}
-        <div className="px-5 pb-7 pt-3 shrink-0 flex flex-col gap-2 border-t border-border">
+        <div className="px-5 pb-7 pt-3 shrink-0 flex flex-col gap-2 border-t border-border lg:pb-5">
           {wrongItems.length > 0 && (
             <button
               onClick={() => onPracticeWrong(wrongItems)}
@@ -104,12 +111,6 @@ export default function ProgressModal({
             className="w-full h-11 rounded-full text-sm font-semibold flex items-center justify-center gap-2 bg-black/[0.04] dark:bg-white/[0.07] border border-border dark:border-white/10 text-foreground/60 dark:text-white/65"
           >
             Start over 🔁
-          </button>
-          <button
-            onClick={onClose}
-            className="w-full h-9 text-xs font-medium text-foreground/40 dark:text-white/35"
-          >
-            Resume session →
           </button>
         </div>
       </div>

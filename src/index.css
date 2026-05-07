@@ -122,6 +122,11 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes fade-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
 @keyframes star-pop {
   0%   { transform: scale(1); }
   50%  { transform: scale(1.45); }
@@ -143,6 +148,9 @@
 @layer utilities {
   .animate-fade-up {
     animation: fade-up 0.4s ease both;
+  }
+  .animate-fade-in {
+    animation: fade-in 0.2s ease both;
   }
   .animate-star-pop {
     animation: star-pop 0.3s ease;
