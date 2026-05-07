@@ -100,8 +100,7 @@ export default function ProgressModal({
           {wrongItems.length > 0 && (
             <button
               onClick={() => onPracticeWrong(wrongItems)}
-              className="w-full h-12 rounded-full text-white font-bold text-sm flex items-center justify-center gap-2"
-              style={{ background: 'var(--btn-primary-gradient)', boxShadow: '0 4px 18px rgba(108,71,255,0.45)' }}
+              className="w-full h-12 rounded-full font-bold text-sm flex items-center justify-center gap-2 border-2 border-primary text-primary bg-transparent"
             >
               Practice {wrongItems.length} wrong item{wrongItems.length === 1 ? '' : 's'} ❌
             </button>
