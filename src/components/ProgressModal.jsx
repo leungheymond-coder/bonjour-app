@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Volume2, Pause, ChevronDown } from 'lucide-react'
+import { X, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function ProgressModal({
@@ -13,31 +13,8 @@ export default function ProgressModal({
   onStartOver,
 }) {
   const [wrongOpen, setWrongOpen] = useState(false)
-  const [playingId, setPlayingId] = useState(null)
-  const audioRef = useRef(null)
 
   const remainingCount = totalCount - doneCount
-
-  useEffect(() => () => {
-    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null }
-  }, [])
-
-  function stopAudio() {
-    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null }
-    setPlayingId(null)
-  }
-
-  function playItem(word) {
-    if (playingId === word.id) { stopAudio(); return }
-    stopAudio()
-    const src = word.audioPath ?? `/audio/${word.id}.mp3`
-    const audio = new Audio(src)
-    audioRef.current = audio
-    setPlayingId(word.id)
-    audio.onended = () => { audioRef.current = null; setPlayingId(null) }
-    audio.onerror = () => { audioRef.current = null; setPlayingId(null) }
-    audio.play().catch(() => { audioRef.current = null; setPlayingId(null) })
-  }
 
   return createPortal(
     <div className="fixed inset-0 z-[80] flex items-end justify-center">
@@ -113,23 +90,11 @@ export default function ProgressModal({
             {wrongItems.map((word, i) => (
               <div
                 key={word.id}
-                className="flex items-center justify-between gap-3 py-3"
+                className="py-3"
                 style={{ borderBottom: i < wrongItems.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}
               >
-                <div className="min-w-0">
-                  <p className="font-bold text-sm text-foreground">{word.french}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5 truncate">{word.english}</p>
-                </div>
-                <button
-                  onClick={() => playItem(word)}
-                  className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-                  style={{ background: 'rgba(108,71,255,0.15)', border: '1px solid rgba(108,71,255,0.30)' }}
-                >
-                  {playingId === word.id
-                    ? <Pause className="h-3.5 w-3.5 text-primary" />
-                    : <Volume2 className="h-3.5 w-3.5 text-primary" />
-                  }
-                </button>
+                <p className="font-bold text-sm text-foreground">{word.french}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{word.english}</p>
               </div>
             ))}
           </div>
@@ -140,7 +105,7 @@ export default function ProgressModal({
           style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
           {wrongItems.length > 0 && (
             <button
-              onClick={() => { stopAudio(); onPracticeWrong(wrongItems) }}
+              onClick={() => onPracticeWrong(wrongItems)}
               className="w-full h-12 rounded-full text-white font-bold text-sm flex items-center justify-center gap-2"
               style={{ background: 'var(--btn-primary-gradient)', boxShadow: '0 4px 18px rgba(108,71,255,0.45)' }}
             >
@@ -148,7 +113,7 @@ export default function ProgressModal({
             </button>
           )}
           <button
-            onClick={() => { stopAudio(); onStartOver() }}
+            onClick={onStartOver}
             className="w-full h-11 rounded-full text-sm font-semibold flex items-center justify-center gap-2"
             style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.10)', color: 'rgba(255,255,255,0.65)' }}
           >
