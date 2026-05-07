@@ -86,10 +86,13 @@ export default function ProgressModal({
             {wrongItems.map((word, i) => (
               <div
                 key={word.id}
-                className={cn('py-3', i < wrongItems.length - 1 && 'border-b border-border')}
+                className={cn('py-3 flex items-start gap-3', i < wrongItems.length - 1 && 'border-b border-border')}
               >
-                <p className="font-bold text-sm text-foreground">{word.french}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{word.english}</p>
+                <span className="text-xs font-medium text-zinc-400 w-4 shrink-0 pt-0.5">{i + 1}</span>
+                <div>
+                  <p className="font-bold text-sm text-foreground">{word.french}</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{word.english}</p>
+                </div>
               </div>
             ))}
           </div>
