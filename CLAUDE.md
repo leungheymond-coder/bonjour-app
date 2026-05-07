@@ -9,7 +9,7 @@ French vocabulary learning app for a non-technical solo developer.
 ## Stack
 - Frontend: React 19 + Vite + Tailwind CSS v4 + React Router v7
 - Backend: Express.js (`server/index.js`, ES modules)
-- APIs: Anthropic Claude (vocab generation), OpenAI TTS (custom word audio — will migrate to Google Cloud TTS), Google Cloud TTS Chirp3 HD (conjugation practice audio; planned: all audio)
+- APIs: Anthropic Claude (vocab generation), Google Cloud TTS Chirp3 HD (all TTS — custom word audio + conjugation practice)
 - State: `useSyncExternalStore` singleton stores for all shared state (collections, custom vocab, word customizations)
 
 ## Language Rules
@@ -38,12 +38,13 @@ French vocabulary learning app for a non-technical solo developer.
 - Folders: max 10 (favourites + 9 user slots `folder_1..folder_9`); `USER_FOLDER_IDS` exported from `useCollections.js`
 - `useCollections` mutators read `_getSnapshot()` at call time, not closed-over `collections` — required so sequential writes in one handler (e.g. `setFolderName` + `toggleInFolder` for inline folder creation) don't clobber each other
 - Practice restart: `PracticePage` owns `activeQueue` + `restartKey`; "Practice Again" reshuffles and bumps `restartKey`, which is passed as `key={restartKey}` to `SessionView`/`DictationView`/`ConjugationView` to force a clean remount. Do NOT render a nested view inside `SuccessScreen` — it leaves the outer instance mounted, duplicating window keydown listeners + audioRefs and causing audio overlap on arrow keys.
+- "Practice wrong items again": `handlePracticeWrongOnly(wrongItems)` in PracticePage replaces `activeQueue` with the wrong subset and bumps `restartKey`. All three modes support it — DictationView and ConjugationView track wrong items internally and pass them up; SessionView passes an empty array.
 - `PracticePage` routes to `DictationView`, `SessionView`, or `ConjugationView` based on `mode` from `location.state` (`'listening'` | `'dictation'` | `'conjugation'`). Listen/Dictation share the same `sharedProps` pattern and `keyHandlersRef` window listener approach.
 - `DictationView` answer check: case-insensitive, accent-sensitive (`toLowerCase()` only — "café" ≠ "cafe"). "Count as correct" escape hatch lets users override wrong answers.
 - Responsive timer in `App.jsx` Layout: `useMediaQuery('(min-width: 1024px)')` — `TimerPill` (ghost pill) at ≥1024px, `TimerCard` (frosted card with always-visible ⏸/▶ + ↺) at <1024px. Both rendered via `createPortal(document.body)`.
 - `src/data/conjugations.js` — 20 common French verbs × 5 tenses × 6 pronouns = 600 forms. Shape: `{ verb, tense, pronoun, conjugated }[]`. Do not edit without discussion.
 - Conjugation practice audio: on-demand via `/api/tts` (Google Cloud Chirp3 HD `fr-FR-Chirp3-HD-Aoede`). Cached as blob URLs in `ConjugationView`'s `audioCache` ref (per-session only). Slow replay uses `audio.playbackRate = 0.75` — Chirp3 HD ignores the `speakingRate` API param.
-- `/api/tts` requires `GOOGLE_TTS_API_KEY` env var (REST API key). Returns MP3 buffer directly. Two TTS providers: `/api/tts` → Google Cloud; `/api/custom-word` + `/api/regenerate-audio` → OpenAI (pending migration).
+- `/api/tts` requires `GOOGLE_TTS_API_KEY` env var (REST API key). Returns MP3 buffer directly. Single TTS provider: all three endpoints (`/api/tts`, `/api/custom-word`, `/api/regenerate-audio`) share the `googleTts()` helper in `server/index.js` → Google Cloud Chirp3 HD.
 
 ## Known Permanent Issues
 - API keys need rotation (were briefly exposed in a chat session)

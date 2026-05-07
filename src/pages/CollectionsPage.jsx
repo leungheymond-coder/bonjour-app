@@ -92,24 +92,22 @@ function FolderCard({ folder, wordCount, onOpen, onRename, onDelete, initialEdit
             <p className="font-bold text-foreground font-heading">{folder.name}</p>
             <p className="text-xs text-muted-foreground mt-0.5">{wordCount} {wordCount === 1 ? 'word' : 'words'}</p>
           </button>
-          {!folder.fixed && (
-            <div className="flex gap-1">
-              <button
-                onClick={() => { setNameVal(folder.name ?? ''); setEditing(true) }}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors active:scale-90"
-                aria-label="Rename folder"
-              >
-                <Pencil className="h-3.5 w-3.5" />
-              </button>
-              <button
-                onClick={onDelete}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors active:scale-90"
-                aria-label="Delete folder"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          )}
+          <div className="flex gap-1">
+            <button
+              onClick={() => { setNameVal(folder.name ?? ''); setEditing(true) }}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors active:scale-90"
+              aria-label="Rename folder"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={onDelete}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors active:scale-90"
+              aria-label="Delete folder"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       )}
     </div>

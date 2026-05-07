@@ -49,7 +49,7 @@ function buildConjugationQueue(verbSource, selectedTenses, collections, customWo
 
   let verbs
   if (verbSource === 'all') {
-    verbs = vocabulary.filter(w => w.category === 'verbs')
+    verbs = [...vocabulary, ...customWords].filter(w => w.category === 'verbs')
   } else {
     const folderIds = collections[verbSource]?.ids ?? []
     const allWords = [...vocabulary, ...customWords]
@@ -161,7 +161,7 @@ export default function ListenPage() {
     if (mode !== 'conjugation') return {}
     let verbs
     if (verbSource === 'all') {
-      verbs = vocabulary.filter(w => w.category === 'verbs')
+      verbs = [...vocabulary, ...customWords].filter(w => w.category === 'verbs')
     } else {
       const folderIds = collections[verbSource]?.ids ?? []
       verbs = [...vocabulary, ...customWords].filter(w => folderIds.includes(w.id))
@@ -187,7 +187,7 @@ export default function ListenPage() {
     // Pre-fetch conjugations for any custom verbs without cached data
     let verbs = []
     if (verbSource === 'all') {
-      verbs = vocabulary.filter(w => w.category === 'verbs')
+      verbs = [...vocabulary, ...customWords].filter(w => w.category === 'verbs')
     } else {
       const folderIds = collections[verbSource]?.ids ?? []
       verbs = [...vocabulary, ...customWords].filter(w => folderIds.includes(w.id))
@@ -227,13 +227,11 @@ export default function ListenPage() {
     })
   }
 
-  // Special groups: Favourites always first, then named user folders
-  const specialGroups = [
-    { id: 'favourites', label: '⭐ Favourites' },
-    ...activeFolders
-      .filter((f) => !f.fixed)
-      .map((f) => ({ id: f.id, label: `📁 ${f.name}` })),
-  ]
+  // Special groups: all named folders (favourites first, then user folders)
+  const specialGroups = activeFolders.map((f) => ({
+    id: f.id,
+    label: f.id === 'favourites' ? `⭐ ${f.name}` : `📁 ${f.name}`,
+  }))
 
   return (
     <div className="flex flex-col">

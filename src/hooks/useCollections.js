@@ -87,15 +87,15 @@ export function useCollections() {
   function setFolderName(folderId, name) {
     const current = _getSnapshot()
     const folder = current[folderId]
-    if (!folder || folder.fixed) return
+    if (!folder) return
     _setStore({ ...current, [folderId]: { ...folder, name: name.trim() || null } })
   }
 
   function deleteFolder(folderId) {
     const current = _getSnapshot()
     const folder = current[folderId]
-    if (!folder || folder.fixed) return
-    _setStore({ ...current, [folderId]: { name: null, fixed: false, ids: [] } })
+    if (!folder) return
+    _setStore({ ...current, [folderId]: { ...folder, name: null, ids: [] } })
   }
 
   // Remove a word id from all folders (called when a word is deleted)
